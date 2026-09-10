@@ -1,2336 +1,1421 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8">
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+  >
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-    >
+  <title>QEXUS</title>
 
-    <meta name="theme-color" content="#f7f9fc">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="QEXUS rewards platform">
 
-    <meta
-        name="description"
-        content="QEXUS — Earn QEXC, complete tasks, invite friends and manage your rewards."
-    >
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <title>QEXUS</title>
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet"
-    >
-
-    <!-- Telegram Mini App -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-    <!-- Main CSS -->
-    <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
-<div id="app">
+  <!-- GLOBAL LOADER -->
+  <div id="globalLoader" class="global-loader">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">QEXUS লোড হচ্ছে...</div>
+  </div>
 
-    <!-- =========================================================
-         TOP BAR
-         ========================================================= -->
 
+  <!-- APP -->
+  <div id="app" class="app">
+
+    <!-- TOP BAR -->
     <header class="topbar">
 
-        <div class="brand">
+      <div class="brand">
 
-            <div class="brand-logo" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none">
-                    <path
-                        d="M6 4h12l-2 4H8L6 4Z"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                        stroke-linejoin="round"
-                    />
-                    <path
-                        d="M8 8h8l-1.5 5H9.5L8 8Z"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                        stroke-linejoin="round"
-                    />
-                    <path
-                        d="m10 13 1.5 7M14 13l-1.5 7"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                        stroke-linecap="round"
-                    />
-                </svg>
-            </div>
-
-            <div>
-                <div class="brand-name">QEXUS</div>
-                <div class="brand-subtitle">Rewards Platform</div>
-            </div>
-
+        <div class="brand-logo">
+          Q
         </div>
 
-        <div class="top-actions">
-
-            <button
-                id="notificationButton"
-                class="icon-button"
-                type="button"
-                aria-label="Notifications"
-                onclick="openNotifications()"
-            >
-                <svg viewBox="0 0 24 24" fill="none">
-                    <path
-                        d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    />
-                    <path
-                        d="M10 21h4"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                        stroke-linecap="round"
-                    />
-                </svg>
-
-                <span
-                    id="notificationBadge"
-                    class="notification-badge hidden"
-                >0</span>
-            </button>
-
-            <button
-                id="topAvatar"
-                class="avatar"
-                type="button"
-                aria-label="Profile"
-                onclick="navigate('profile')"
-            >
-                <span id="topAvatarText">Q</span>
-            </button>
-
+        <div>
+          <div class="brand-name">QEXUS</div>
+          <div class="brand-subtitle">Rewards Platform</div>
         </div>
+
+      </div>
+
+      <div class="top-actions">
+
+        <button
+          id="notificationButton"
+          class="icon-button"
+          type="button"
+          aria-label="Notifications"
+        >
+          <span>♢</span>
+          <span id="notificationBadge" class="notification-badge hidden">
+            0
+          </span>
+        </button>
+
+        <button
+          id="topAvatar"
+          class="avatar"
+          type="button"
+          onclick="navigate('profile')"
+        >
+          <span id="topAvatarText">U</span>
+        </button>
+
+      </div>
 
     </header>
 
 
-    <!-- =========================================================
-         MAIN
-         ========================================================= -->
+    <!-- MAIN -->
+    <main>
 
-    <main id="mainContent">
 
-        <!-- =====================================================
-             HOME
-             ===================================================== -->
+      <!-- ================= HOME ================= -->
 
-        <section
-            id="home"
-            class="page active"
-            data-page="home"
+      <section id="page-home" class="page active">
+
+        <div class="page-intro">
+
+          <div class="eyebrow">
+            WELCOME TO QEXUS
+          </div>
+
+          <h1 class="welcome-title">
+            হ্যালো, <span id="userName">User</span>
+          </h1>
+
+        </div>
+
+
+        <!-- BALANCE -->
+        <div class="balance-card">
+
+          <div class="balance-card-top">
+
+            <div>
+              <div class="balance-label">
+                Available Balance
+              </div>
+
+              <div class="balance-value">
+                ৳<span id="balanceBDT">0.00</span>
+              </div>
+
+              <div class="balance-qexc">
+                <span id="balanceQEXC">0</span> QEXC
+              </div>
+            </div>
+
+            <div class="balance-coin">
+              Q
+            </div>
+
+          </div>
+
+
+          <div class="balance-divider"></div>
+
+
+          <div class="balance-actions">
+
+            <button
+              class="balance-action"
+              type="button"
+              onclick="navigate('earn')"
+            >
+              <span class="action-icon green">+</span>
+              <span>Earn</span>
+            </button>
+
+            <button
+              class="balance-action"
+              type="button"
+              onclick="openWithdrawModal()"
+            >
+              <span class="action-icon blue">↗</span>
+              <span>Withdraw</span>
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- QUICK ACTIONS -->
+        <div class="section-header">
+
+          <div>
+            <div class="section-kicker">
+              EXPLORE
+            </div>
+
+            <div class="section-title">
+              Quick Actions
+            </div>
+          </div>
+
+        </div>
+
+
+        <div class="quick-grid">
+
+          <button
+            class="quick-item"
+            type="button"
+            onclick="navigate('earn')"
+          >
+            <span class="quick-icon green">▶</span>
+            <span class="quick-label">Earn</span>
+            <span class="quick-arrow">›</span>
+          </button>
+
+
+          <button
+            class="quick-item"
+            type="button"
+            onclick="navigate('tasks')"
+          >
+            <span class="quick-icon blue">✓</span>
+            <span class="quick-label">Tasks</span>
+            <span class="quick-arrow">›</span>
+          </button>
+
+
+          <button
+            class="quick-item"
+            type="button"
+            onclick="navigate('wallet')"
+          >
+            <span class="quick-icon purple">৳</span>
+            <span class="quick-label">Wallet</span>
+            <span class="quick-arrow">›</span>
+          </button>
+
+
+          <button
+            class="quick-item"
+            type="button"
+            onclick="navigate('profile')"
+          >
+            <span class="quick-icon orange">●</span>
+            <span class="quick-label">Profile</span>
+            <span class="quick-arrow">›</span>
+          </button>
+
+        </div>
+
+
+        <!-- DAILY STATUS -->
+        <div class="mini-status-card">
+
+          <div class="mini-status-icon">
+            ✦
+          </div>
+
+          <div class="mini-status-content">
+
+            <div class="mini-status-title">
+              Daily Bonus
+            </div>
+
+            <div
+              id="homeDailyStatus"
+              class="mini-status-text"
+            >
+              আজকের bonus সংগ্রহ করুন
+            </div>
+
+          </div>
+
+          <button
+            type="button"
+            class="section-link"
+            onclick="navigate('earn')"
+          >
+            দেখুন
+          </button>
+
+        </div>
+
+
+        <!-- RECENT ACTIVITY -->
+        <div class="section-header">
+
+          <div>
+            <div class="section-kicker">
+              ACTIVITY
+            </div>
+
+            <div class="section-title">
+              Recent Activity
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="section-link"
+            onclick="navigate('wallet')"
+          >
+            সব দেখুন
+          </button>
+
+        </div>
+
+
+        <div
+          id="recentTransactions"
+          class="transaction-list"
         >
 
-            <div class="page-intro">
+          <div class="empty-state compact">
 
-                <div class="eyebrow">
-                    QEXUS ACCOUNT
-                </div>
+            <div class="empty-icon">
+              ◌
+            </div>
 
-                <h1 class="welcome-title">
-                    স্বাগতম,
-                    <strong id="userName">QEXUS User</strong>
-                </h1>
+            <div class="empty-title">
+              কোনো activity নেই
+            </div>
 
-                <p class="page-description">
-                    আজও সহজ কিছু কাজ করে QEXC সংগ্রহ করুন।
-                </p>
+            <div class="empty-description">
+              Earn শুরু করলে এখানে আপনার activity দেখা যাবে।
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- ================= EARN ================= -->
+
+      <section id="page-earn" class="page">
+
+        <div class="page-heading">
+
+          <div class="page-title">
+            Earn QEXC
+          </div>
+
+          <div class="page-description">
+            সহজ ও verified উপায়ে QEXC সংগ্রহ করুন।
+          </div>
+
+        </div>
+
+
+        <!-- DAILY BONUS -->
+
+        <div class="earn-card">
+
+          <div class="earn-card-head">
+
+            <div class="earn-main-icon">
+              ✦
+            </div>
+
+            <div class="earn-card-info">
+
+              <div class="earn-card-title">
+                Daily Bonus
+              </div>
+
+              <div class="earn-card-subtitle">
+                প্রতিদিন একবার bonus claim করুন
+              </div>
 
             </div>
 
-
-            <!-- Balance Card -->
-
-            <div class="balance-card">
-
-                <div class="balance-card-top">
-
-                    <div>
-                        <div class="balance-label">
-                            Available Balance
-                        </div>
-
-                        <div
-                            id="balanceBDT"
-                            class="balance-value"
-                        >
-                            ৳0.00
-                        </div>
-
-                        <div
-                            id="balanceQEXC"
-                            class="balance-qexc"
-                        >
-                            0 QEXC
-                        </div>
-                    </div>
-
-                    <div class="balance-coin">
-                        Q
-                    </div>
-
-                </div>
-
-
-                <div class="balance-divider"></div>
-
-
-                <div class="balance-actions">
-
-                    <button
-                        class="balance-action"
-                        type="button"
-                        onclick="navigate('earn')"
-                    >
-                        <span class="action-icon green">
-                            <svg viewBox="0 0 24 24" fill="none">
-                                <path
-                                    d="M12 3v18"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                    stroke-linecap="round"
-                                />
-                                <path
-                                    d="M17 7H9.5a3.5 3.5 0 0 0 0 7H15a3.5 3.5 0 0 1 0 7H7"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                    stroke-linecap="round"
-                                />
-                            </svg>
-                        </span>
-
-                        <span>আয় করুন</span>
-                    </button>
-
-
-                    <button
-                        class="balance-action"
-                        type="button"
-                        onclick="openWithdrawModal()"
-                    >
-                        <span class="action-icon blue">
-                            <svg viewBox="0 0 24 24" fill="none">
-                                <path
-                                    d="M12 3v12"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                    stroke-linecap="round"
-                                />
-                                <path
-                                    d="m7 10 5 5 5-5"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                />
-                                <path
-                                    d="M5 21h14"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                    stroke-linecap="round"
-                                />
-                            </svg>
-                        </span>
-
-                        <span>উত্তোলন</span>
-                    </button>
-
-                </div>
-
+            <div class="earn-reward">
+              +10 QEXC
             </div>
 
+          </div>
 
-            <!-- Quick Actions -->
 
-            <div class="section-header">
+          <div
+            id="dailyCountdownBox"
+            class="countdown-box"
+          >
 
-                <div>
-                    <div class="section-kicker">
-                        EXPLORE
-                    </div>
-
-                    <h2 class="section-title">
-                        দ্রুত কাজ
-                    </h2>
-                </div>
-
+            <div class="countdown-label">
+              পরবর্তী bonus
             </div>
-
-
-            <div class="quick-grid">
-
-                <button
-                    class="quick-item"
-                    type="button"
-                    onclick="navigate('earn')"
-                >
-                    <span class="quick-icon green">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path
-                                d="M12 3v18"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                            <path
-                                d="M17 7H9.5a3.5 3.5 0 0 0 0 7H15a3.5 3.5 0 0 1 0 7H7"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                    </span>
-
-                    <span class="quick-label">
-                        Earn
-                    </span>
-
-                    <span class="quick-arrow">›</span>
-                </button>
-
-
-                <button
-                    class="quick-item"
-                    type="button"
-                    onclick="navigate('tasks')"
-                >
-                    <span class="quick-icon blue">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <rect
-                                x="4"
-                                y="3"
-                                width="16"
-                                height="18"
-                                rx="2"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            />
-                            <path
-                                d="M8 8h8M8 12h8M8 16h5"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                    </span>
-
-                    <span class="quick-label">
-                        Tasks
-                    </span>
-
-                    <span class="quick-arrow">›</span>
-                </button>
-
-
-                <button
-                    class="quick-item"
-                    type="button"
-                    onclick="navigate('leaderboard')"
-                >
-                    <span class="quick-icon purple">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path
-                                d="M8 21h8"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                            <path
-                                d="M12 17V5"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                            <path
-                                d="m8 9 4-4 4 4"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            />
-                            <path
-                                d="M5 9v8M19 9v8"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                    </span>
-
-                    <span class="quick-label">
-                        Leaderboard
-                    </span>
-
-                    <span class="quick-arrow">›</span>
-                </button>
-
-
-                <button
-                    class="quick-item"
-                    type="button"
-                    onclick="navigate('wallet')"
-                >
-                    <span class="quick-icon orange">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <rect
-                                x="3"
-                                y="6"
-                                width="18"
-                                height="14"
-                                rx="3"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            />
-                            <path
-                                d="M16 12h5"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                            <circle
-                                cx="16"
-                                cy="12"
-                                r="1"
-                                fill="currentColor"
-                            />
-                        </svg>
-                    </span>
-
-                    <span class="quick-label">
-                        Wallet
-                    </span>
-
-                    <span class="quick-arrow">›</span>
-                </button>
-
-            </div>
-
-
-            <!-- Daily Status -->
 
             <div
-                id="homeDailyCard"
-                class="mini-status-card"
-                onclick="navigate('earn')"
+              id="dailyCountdown"
+              class="countdown-value"
             >
+              Available
+            </div>
 
-                <div class="mini-status-icon">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <rect
-                            x="3"
-                            y="4"
-                            width="18"
-                            height="17"
-                            rx="3"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                        />
-                        <path
-                            d="M8 2v4M16 2v4M3 9h18"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                        />
-                        <path
-                            d="m8 14 2 2 5-5"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        />
-                    </svg>
-                </div>
+          </div>
 
-                <div class="mini-status-content">
 
-                    <div class="mini-status-title">
-                        Daily Bonus
-                    </div>
+          <button
+            id="dailyBonusButton"
+            type="button"
+            class="primary-btn"
+            onclick="claimDailyBonus()"
+          >
+            Daily Bonus নিন
+          </button>
 
-                    <div
-                        id="homeDailyStatus"
-                        class="mini-status-text"
-                    >
-                        আজকের bonus সংগ্রহ করুন
-                    </div>
+        </div>
 
-                </div>
 
-                <span class="quick-arrow">
-                    ›
-                </span>
+        <!-- REWARDED AD -->
+
+        <div class="earn-card featured-earn-card">
+
+          <div class="earn-card-head">
+
+            <div class="earn-main-icon">
+              ▶
+            </div>
+
+            <div class="earn-card-info">
+
+              <div class="earn-card-title">
+                Watch & Earn
+              </div>
+
+              <div class="earn-card-subtitle">
+                Verified rewarded advertisement
+              </div>
 
             </div>
 
+            <div class="earn-reward">
+              +3 QEXC
+            </div>
 
-            <!-- Recent Activity -->
+          </div>
 
-            <div class="section-header">
 
-                <div>
-                    <div class="section-kicker">
-                        ACTIVITY
-                    </div>
+          <div
+            id="adContainer"
+            class="ad-container"
+          >
 
-                    <h2 class="section-title">
-                        সাম্প্রতিক কার্যক্রম
-                    </h2>
-                </div>
+            <div class="ad-placeholder-icon">
+              ▶
+            </div>
 
-                <button
-                    class="section-link"
-                    type="button"
-                    onclick="navigate('wallet')"
-                >
-                    সব দেখুন
-                </button>
+            <div class="ad-label">
+              Rewarded Ad
+            </div>
+
+            <div id="adStatus">
+              বিজ্ঞাপন বর্তমানে unavailable
+            </div>
+
+          </div>
+
+
+          <button
+            id="watchAdButton"
+            type="button"
+            class="primary-btn"
+            onclick="watchAd()"
+          >
+            বিজ্ঞাপন দেখুন
+          </button>
+
+        </div>
+
+
+        <!-- TASK SHORTCUT -->
+
+        <div class="task-summary-card">
+
+          <div class="task-summary-left">
+
+            <div class="task-summary-icon">
+              ✓
+            </div>
+
+            <div>
+
+              <div class="task-summary-title">
+                More Tasks
+              </div>
+
+              <div class="task-summary-subtitle">
+                আরও reward পাওয়ার সুযোগ
+              </div>
 
             </div>
 
+          </div>
 
-            <div
-                id="recentTransactions"
-                class="transaction-list"
-            >
+          <div
+            id="taskCount"
+            class="task-count"
+          >
+            0
+          </div>
 
-                <div class="empty-state">
+        </div>
 
-                    <div class="empty-icon">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path
-                                d="M4 6h16M4 12h16M4 18h10"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                    </div>
+        <button
+          type="button"
+          class="secondary-btn"
+          onclick="navigate('tasks')"
+        >
+          সব Tasks দেখুন
+        </button>
 
-                    <div class="empty-title">
-                        এখনো কোনো কার্যক্রম নেই
-                    </div>
-
-                    <div class="empty-description">
-                        আপনার earning শুরু করলে এখানে দেখা যাবে।
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
+      </section>
 
 
-        <!-- =====================================================
-             EARN
-             ===================================================== -->
 
-        <section
-            id="earn"
-            class="page"
-            data-page="earn"
+      <!-- ================= TASKS ================= -->
+
+      <section id="page-tasks" class="page">
+
+        <div class="page-heading">
+
+          <div class="page-title">
+            Tasks
+          </div>
+
+          <div class="page-description">
+            Available tasks complete করে QEXC earn করুন।
+          </div>
+
+        </div>
+
+
+        <div
+          id="taskList"
+          class="task-list"
         >
 
-            <div class="page-heading">
+          <div class="empty-state">
 
-                <div class="eyebrow">
-                    EARN QEXC
-                </div>
-
-                <h1 class="page-title">
-                    Earn
-                </h1>
-
-                <p class="page-description">
-                    verified কাজ সম্পন্ন করে QEXC সংগ্রহ করুন।
-                </p>
-
+            <div class="empty-icon">
+              ✓
             </div>
 
-
-            <!-- Rewarded Ads -->
-
-            <div class="earn-card featured-earn-card">
-
-                <div class="earn-card-head">
-
-                    <div class="earn-main-icon green">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <rect
-                                x="3"
-                                y="5"
-                                width="18"
-                                height="14"
-                                rx="3"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            />
-                            <path
-                                d="m10 9 5 3-5 3V9Z"
-                                fill="currentColor"
-                            />
-                        </svg>
-                    </div>
-
-                    <div class="earn-card-info">
-
-                        <div class="earn-card-title">
-                            Rewarded Ad
-                        </div>
-
-                        <div class="earn-card-subtitle">
-                            বিজ্ঞাপন সম্পূর্ণ দেখলে reward পাবেন
-                        </div>
-
-                    </div>
-
-                    <div
-                        id="adRewardText"
-                        class="earn-reward"
-                    >
-                        +3 QEXC
-                    </div>
-
-                </div>
-
-
-                <div
-                    id="adContainer"
-                    class="ad-container"
-                >
-
-                    <div class="ad-placeholder-icon">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <rect
-                                x="3"
-                                y="5"
-                                width="18"
-                                height="14"
-                                rx="3"
-                                stroke="currentColor"
-                                stroke-width="1.6"
-                            />
-                            <path
-                                d="m10 9 5 3-5 3V9Z"
-                                fill="currentColor"
-                            />
-                        </svg>
-                    </div>
-
-                    <div class="ad-label">
-                        REWARDED AD
-                    </div>
-
-                    <div
-                        id="adStatus"
-                        class="empty-description"
-                    >
-                        বিজ্ঞাপন প্রস্তুত হলে এখানে দেখানো হবে।
-                    </div>
-
-                </div>
-
-
-                <button
-                    id="watchAdButton"
-                    class="primary-btn"
-                    type="button"
-                    onclick="watchAd()"
-                >
-                    বিজ্ঞাপন দেখুন
-                </button>
-
+            <div class="empty-title">
+              Tasks লোড হচ্ছে...
             </div>
 
-
-            <!-- Daily Bonus -->
-
-            <div class="earn-card">
-
-                <div class="earn-card-head">
-
-                    <div class="earn-main-icon orange">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <rect
-                                x="3"
-                                y="4"
-                                width="18"
-                                height="17"
-                                rx="3"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            />
-                            <path
-                                d="M8 2v4M16 2v4M3 9h18"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                            <path
-                                d="m8 14 2 2 5-5"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            />
-                        </svg>
-                    </div>
-
-                    <div class="earn-card-info">
-
-                        <div class="earn-card-title">
-                            Daily Bonus
-                        </div>
-
-                        <div class="earn-card-subtitle">
-                            প্রতিদিন একবার bonus claim করুন
-                        </div>
-
-                    </div>
-
-                    <div
-                        id="dailyRewardText"
-                        class="earn-reward"
-                    >
-                        +10 QEXC
-                    </div>
-
-                </div>
-
-
-                <div
-                    id="dailyCountdownBox"
-                    class="countdown-box"
-                >
-
-                    <div class="countdown-label">
-                        পরবর্তী bonus
-                    </div>
-
-                    <div
-                        id="dailyCountdown"
-                        class="countdown-value"
-                    >
-                        Available Now
-                    </div>
-
-                </div>
-
-
-                <button
-                    id="dailyBonusButton"
-                    class="primary-btn"
-                    type="button"
-                    onclick="claimDailyBonus()"
-                >
-                    Daily Bonus নিন
-                </button>
-
+            <div class="empty-description">
+              Available tasks খোঁজা হচ্ছে।
             </div>
 
+          </div>
 
-            <!-- Tasks -->
+        </div>
 
-            <div class="earn-card">
-
-                <div class="earn-card-head">
-
-                    <div class="earn-main-icon blue">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path
-                                d="m9 11 3 3L22 4"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            />
-                            <path
-                                d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                    </div>
-
-                    <div class="earn-card-info">
-
-                        <div class="earn-card-title">
-                            Tasks & Offers
-                        </div>
-
-                        <div class="earn-card-subtitle">
-                            available কাজ থেকে অতিরিক্ত reward নিন
-                        </div>
-
-                    </div>
-
-                </div>
+      </section>
 
 
-                <button
-                    class="secondary-btn"
-                    type="button"
-                    onclick="navigate('tasks')"
-                >
-                    Tasks দেখুন
-                    <span>›</span>
-                </button>
 
-            </div>
+      <!-- ================= LEADERBOARD ================= -->
 
+      <section id="page-leaderboard" class="page">
 
-            <!-- Referral -->
+        <div class="page-heading">
 
-            <div class="earn-card">
+          <div class="page-title">
+            Leaderboard
+          </div>
 
-                <div class="earn-card-head">
+          <div class="page-description">
+            QEXUS-এর top earners দেখুন।
+          </div>
 
-                    <div class="earn-main-icon purple">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <circle
-                                cx="9"
-                                cy="8"
-                                r="3"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            />
-                            <circle
-                                cx="17"
-                                cy="9"
-                                r="2.5"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            />
-                            <path
-                                d="M3 20a6 6 0 0 1 12 0"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                            <path
-                                d="M15 14a5 5 0 0 1 6 6"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                    </div>
-
-                    <div class="earn-card-info">
-
-                        <div class="earn-card-title">
-                            Referral
-                        </div>
-
-                        <div class="earn-card-subtitle">
-                            বন্ধুদের invite করে bonus earn করুন
-                        </div>
-
-                    </div>
-
-                </div>
+        </div>
 
 
-                <button
-                    class="secondary-btn"
-                    type="button"
-                    onclick="navigate('profile')"
-                >
-                    Referral দেখুন
-                    <span>›</span>
-                </button>
+        <div class="leaderboard-tabs">
 
-            </div>
+          <button
+            type="button"
+            class="leaderboard-tab active"
+            data-period="all"
+            onclick="loadLeaderboard('all')"
+          >
+            All Time
+          </button>
 
-        </section>
+          <button
+            type="button"
+            class="leaderboard-tab"
+            data-period="month"
+            onclick="loadLeaderboard('month')"
+          >
+            Monthly
+          </button>
+
+          <button
+            type="button"
+            class="leaderboard-tab"
+            data-period="week"
+            onclick="loadLeaderboard('week')"
+          >
+            Weekly
+          </button>
+
+        </div>
 
 
-        <!-- =====================================================
-             TASKS
-             ===================================================== -->
+        <div
+          id="leaderboardTop"
+          class="leaderboard-top"
+        ></div>
 
-        <section
-            id="tasks"
-            class="page"
-            data-page="tasks"
+
+        <div
+          id="leaderboardList"
+          class="leaderboard-list"
         >
 
-            <div class="page-heading">
+          <div class="leaderboard-loading">
+            Leaderboard লোড হচ্ছে...
+          </div>
 
-                <div class="eyebrow">
-                    AVAILABLE TASKS
-                </div>
-
-                <h1 class="page-title">
-                    Tasks
-                </h1>
-
-                <p class="page-description">
-                    কাজ সম্পন্ন করে verified QEXC reward সংগ্রহ করুন।
-                </p>
-
-            </div>
+        </div>
 
 
-            <div class="task-summary-card">
+        <div class="my-rank-card">
 
-                <div class="task-summary-left">
+          <div class="my-rank-label">
+            Your Rank
+          </div>
 
-                    <div class="task-summary-icon">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path
-                                d="M5 4h14v16H5z"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linejoin="round"
-                            />
-                            <path
-                                d="M8 8h8M8 12h8M8 16h5"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                    </div>
+          <div
+            id="myRankValue"
+            class="my-rank-value"
+          >
+            —
+          </div>
 
-                    <div>
-                        <div class="task-summary-title">
-                            Available Tasks
-                        </div>
+        </div>
 
-                        <div class="task-summary-subtitle">
-                            verified rewards
-                        </div>
-                    </div>
-
-                </div>
-
-                <div
-                    id="taskCount"
-                    class="task-count"
-                >
-                    0 tasks
-                </div>
-
-            </div>
+      </section>
 
 
-            <div
-                id="taskList"
-                class="task-list"
-            >
 
-                <div class="empty-state">
+      <!-- ================= WALLET ================= -->
 
-                    <div class="empty-icon">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path
-                                d="M5 4h14v16H5z"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            />
-                            <path
-                                d="M8 8h8M8 12h8M8 16h5"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                    </div>
+      <section id="page-wallet" class="page">
 
-                    <div class="empty-title">
-                        Task লোড হচ্ছে...
-                    </div>
+        <div class="page-heading">
 
-                    <div class="empty-description">
-                        একটু অপেক্ষা করুন।
-                    </div>
+          <div class="page-title">
+            Wallet
+          </div>
 
-                </div>
+          <div class="page-description">
+            আপনার QEXC balance ও transaction দেখুন।
+          </div>
+
+        </div>
+
+
+        <div class="wallet-card">
+
+          <div class="wallet-balance-label">
+            Available Balance
+          </div>
+
+          <div
+            id="walletQEXC"
+            class="wallet-qexc"
+          >
+            0 QEXC
+          </div>
+
+          <div
+            id="walletBalance"
+            class="wallet-bdt"
+          >
+            ৳0.00
+          </div>
+
+
+          <div class="wallet-divider"></div>
+
+
+          <div class="wallet-stats">
+
+            <div class="wallet-stat">
+
+              <div class="wallet-stat-label">
+                Total Earned
+              </div>
+
+              <div
+                id="totalEarned"
+                class="wallet-stat-value"
+              >
+                0
+              </div>
 
             </div>
 
-        </section>
+
+            <div class="wallet-stat">
+
+              <div class="wallet-stat-label">
+                Withdrawn
+              </div>
+
+              <div
+                id="totalWithdrawn"
+                class="wallet-stat-value"
+              >
+                0
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
 
 
-        <!-- =====================================================
-             LEADERBOARD
-             ===================================================== -->
+        <button
+          type="button"
+          class="primary-btn"
+          onclick="openWithdrawModal()"
+        >
+          Withdraw
+        </button>
 
-        <section
-            id="leaderboard"
-            class="page"
-            data-page="leaderboard"
+
+        <div class="section-header">
+
+          <div>
+
+            <div class="section-kicker">
+              HISTORY
+            </div>
+
+            <div class="section-title">
+              Transactions
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div
+          id="historyList"
+          class="transaction-list"
         >
 
-            <div class="page-heading">
+          <div class="empty-state">
 
-                <div class="eyebrow">
-                    TOP EARNERS
-                </div>
+            <div class="empty-icon">
+              ◌
+            </div>
 
-                <h1 class="page-title">
-                    Leaderboard
-                </h1>
+            <div class="empty-title">
+              কোনো transaction নেই
+            </div>
 
-                <p class="page-description">
-                    QEXUS-এর সেরা earners-দের ranking দেখুন।
-                </p>
+            <div class="empty-description">
+              আপনার earning ও withdrawal এখানে দেখা যাবে।
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- ================= PROFILE ================= -->
+
+      <section id="page-profile" class="page">
+
+        <div class="profile-header">
+
+          <div
+            id="profileAvatar"
+            class="profile-avatar"
+          >
+            U
+          </div>
+
+          <div
+            id="profileName"
+            class="profile-name"
+          >
+            User
+          </div>
+
+          <div
+            id="profileUsername"
+            class="profile-username"
+          >
+            @username
+          </div>
+
+
+          <div class="profile-stats">
+
+            <div class="profile-stat">
+
+              <div
+                id="profileEarned"
+                class="profile-stat-value"
+              >
+                0
+              </div>
+
+              <div class="profile-stat-label">
+                Earned
+              </div>
 
             </div>
 
 
-            <div class="leaderboard-tabs">
+            <div class="profile-stat">
 
-                <button
-                    class="leaderboard-tab active"
-                    type="button"
-                    data-period="weekly"
-                    onclick="loadLeaderboard('weekly')"
-                >
-                    Weekly
-                </button>
+              <div
+                id="profileWithdrawn"
+                class="profile-stat-value"
+              >
+                0
+              </div>
 
-                <button
-                    class="leaderboard-tab"
-                    type="button"
-                    data-period="monthly"
-                    onclick="loadLeaderboard('monthly')"
-                >
-                    Monthly
-                </button>
-
-                <button
-                    class="leaderboard-tab"
-                    type="button"
-                    data-period="all"
-                    onclick="loadLeaderboard('all')"
-                >
-                    All Time
-                </button>
+              <div class="profile-stat-label">
+                Withdrawn
+              </div>
 
             </div>
 
+          </div>
 
-            <div
-                id="leaderboardTop"
-                class="leaderboard-top"
+        </div>
+
+
+        <!-- REFERRAL -->
+
+        <div class="referral-card">
+
+          <div class="referral-title">
+            Invite & Earn
+          </div>
+
+          <div class="referral-description">
+            বন্ধুদের invite করে referral reward পাওয়ার সুযোগ।
+          </div>
+
+
+          <div class="referral-box">
+
+            <input
+              id="referralLink"
+              class="input"
+              type="text"
+              readonly
+              value=""
             >
 
-                <div class="leaderboard-loading">
-                    Ranking লোড হচ্ছে...
-                </div>
-
-            </div>
+          </div>
 
 
-            <div
-                id="leaderboardList"
-                class="leaderboard-list"
+          <div class="referral-actions">
+
+            <button
+              type="button"
+              class="primary-btn"
+              onclick="copyReferral()"
             >
+              Copy Link
+            </button>
 
-                <div class="empty-state">
-
-                    <div class="empty-icon">
-                        🏆
-                    </div>
-
-                    <div class="empty-title">
-                        Leaderboard লোড হচ্ছে...
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div
-                id="myLeaderboardRank"
-                class="my-rank-card"
+            <button
+              type="button"
+              class="secondary-btn"
+              onclick="shareReferral()"
             >
+              Share
+            </button>
 
-                <div class="my-rank-label">
-                    আপনার Ranking
-                </div>
+          </div>
 
-                <div class="my-rank-value">
-                    —
-                </div>
+        </div>
 
+
+        <!-- SETTINGS -->
+
+        <div class="section-header">
+
+          <div>
+            <div class="section-kicker">
+              ACCOUNT
             </div>
 
-        </section>
-
-
-        <!-- =====================================================
-             WALLET
-             ===================================================== -->
-
-        <section
-            id="wallet"
-            class="page"
-            data-page="wallet"
-        >
-
-            <div class="page-heading">
-
-                <div class="eyebrow">
-                    YOUR FINANCES
-                </div>
-
-                <h1 class="page-title">
-                    Wallet
-                </h1>
-
-                <p class="page-description">
-                    আপনার QEXC balance এবং transaction history।
-                </p>
-
+            <div class="section-title">
+              Settings
             </div>
+          </div>
 
+        </div>
 
-            <div class="wallet-card">
 
-                <div class="wallet-balance-label">
-                    Current Balance
-                </div>
+        <div class="settings-list">
 
-                <div
-                    id="walletQEXC"
-                    class="wallet-qexc"
-                >
-                    0 QEXC
-                </div>
-
-                <div
-                    id="walletBalance"
-                    class="wallet-bdt"
-                >
-                    ৳0.00
-                </div>
-
-
-                <div class="wallet-divider"></div>
-
-
-                <div class="wallet-stats">
-
-                    <div class="wallet-stat">
-
-                        <div class="wallet-stat-label">
-                            মোট আয়
-                        </div>
-
-                        <div
-                            id="totalEarned"
-                            class="wallet-stat-value"
-                        >
-                            0 QEXC
-                        </div>
-
-                    </div>
-
-
-                    <div class="wallet-stat">
-
-                        <div class="wallet-stat-label">
-                            মোট উত্তোলন
-                        </div>
-
-                        <div
-                            id="totalWithdrawn"
-                            class="wallet-stat-value"
-                        >
-                            0 QEXC
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <button
-                    class="primary-btn"
-                    type="button"
-                    onclick="openWithdrawModal()"
-                >
-                    Withdraw
-                </button>
-
-            </div>
-
-
-            <div class="section-header">
-
-                <div>
-                    <div class="section-kicker">
-                        HISTORY
-                    </div>
-
-                    <h2 class="section-title">
-                        Transaction History
-                    </h2>
-                </div>
-
-                <button
-                    class="icon-button small"
-                    type="button"
-                    onclick="refreshWallet()"
-                    aria-label="Refresh wallet"
-                >
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path
-                            d="M20 11a8 8 0 0 0-14.5-4.7L4 8"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        />
-                        <path
-                            d="M4 4v4h4"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        />
-                        <path
-                            d="M4 13a8 8 0 0 0 14.5 4.7L20 16"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        />
-                        <path
-                            d="M20 20v-4h-4"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        />
-                    </svg>
-                </button>
-
-            </div>
-
-
-            <div
-                id="historyList"
-                class="transaction-list"
-            >
-
-                <div class="empty-state">
-
-                    <div class="empty-icon">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path
-                                d="M4 6h16M4 12h16M4 18h10"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                    </div>
-
-                    <div class="empty-title">
-                        কোনো transaction নেই
-                    </div>
+          <button
+            type="button"
+            class="setting-item"
+            onclick="showNotifications()"
+          >
 
-                </div>
+            <span class="setting-icon">
+              ♢
+            </span>
 
-            </div>
+            <span class="setting-text">
+              Notifications
+            </span>
 
-        </section>
+            <span class="setting-arrow">
+              ›
+            </span>
 
+          </button>
 
-        <!-- =====================================================
-             PROFILE
-             ===================================================== -->
 
-        <section
-            id="profile"
-            class="page"
-            data-page="profile"
-        >
+          <button
+            type="button"
+            class="setting-item"
+            onclick="showPolicy('terms')"
+          >
 
-            <div class="profile-header">
+            <span class="setting-icon">
+              □
+            </span>
 
-                <div
-                    id="profileAvatar"
-                    class="profile-avatar"
-                >
-                    Q
-                </div>
+            <span class="setting-text">
+              Terms & Conditions
+            </span>
 
-                <div
-                    id="profileName"
-                    class="profile-name"
-                >
-                    QEXUS User
-                </div>
-
-                <div
-                    id="profileUsername"
-                    class="profile-username"
-                >
-                    @username
-                </div>
-
-            </div>
-
-
-            <!-- Profile Stats -->
-
-            <div class="profile-stats">
-
-                <div class="profile-stat">
-
-                    <div
-                        id="profileTotalEarned"
-                        class="profile-stat-value"
-                    >
-                        0
-                    </div>
-
-                    <div class="profile-stat-label">
-                        Total Earned
-                    </div>
-
-                </div>
-
-
-                <div class="profile-stat">
-
-                    <div
-                        id="profileReferrals"
-                        class="profile-stat-value"
-                    >
-                        0
-                    </div>
-
-                    <div class="profile-stat-label">
-                        Referrals
-                    </div>
-
-                </div>
-
-
-                <div class="profile-stat">
-
-                    <div
-                        id="profileRank"
-                        class="profile-stat-value"
-                    >
-                        —
-                    </div>
+            <span class="setting-arrow">
+              ›
+            </span>
 
-                    <div class="profile-stat-label">
-                        Rank
-                    </div>
+          </button>
 
-                </div>
-
-            </div>
-
-
-            <!-- Referral -->
-
-            <div class="referral-card">
-
-                <div class="referral-title">
-                    বন্ধুদের Invite করুন
-                </div>
-
-                <div class="referral-description">
-                    আপনার referral link শেয়ার করে QEXUS community বড় করুন এবং eligible referral reward earn করুন।
-                </div>
-
-
-                <div class="referral-box">
-
-                    <input
-                        id="referralLink"
-                        type="text"
-                        readonly
-                        value=""
-                        aria-label="Referral link"
-                    >
-
-                    <button
-                        type="button"
-                        onclick="copyReferral()"
-                        aria-label="Copy referral link"
-                    >
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <rect
-                                x="9"
-                                y="9"
-                                width="11"
-                                height="11"
-                                rx="2"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            />
-                            <path
-                                d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                    </button>
-
-                </div>
-
-
-                <div class="referral-actions">
-
-                    <button
-                        class="secondary-btn"
-                        type="button"
-                        onclick="copyReferral()"
-                    >
-                        Copy Link
-                    </button>
-
-                    <button
-                        class="primary-btn"
-                        type="button"
-                        onclick="shareReferral()"
-                    >
-                        Share
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            <!-- Settings -->
-
-            <div class="section-header">
-
-                <div>
-                    <div class="section-kicker">
-                        ACCOUNT
-                    </div>
-
-                    <h2 class="section-title">
-                        Settings & Support
-                    </h2>
-                </div>
-
-            </div>
-
-
-            <div class="settings-list">
-
-                <button
-                    class="setting-item"
-                    type="button"
-                    onclick="openNotifications()"
-                >
-                    <span class="setting-icon blue">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path
-                                d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                            <path
-                                d="M10 21h4"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                    </span>
-
-                    <span class="setting-text">
-                        Notifications
-                    </span>
-
-                    <span class="setting-arrow">
-                        ›
-                    </span>
-                </button>
-
-
-                <button
-                    class="setting-item"
-                    type="button"
-                    onclick="showHelp()"
-                >
-                    <span class="setting-icon green">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <circle
-                                cx="12"
-                                cy="12"
-                                r="9"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            />
-                            <path
-                                d="M9.5 9a2.5 2.5 0 1 1 4.2 1.8c-.9.8-1.7 1.2-1.7 2.7"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                            <path
-                                d="M12 17h.01"
-                                stroke="currentColor"
-                                stroke-width="2.5"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                    </span>
-
-                    <span class="setting-text">
-                        Help & Support
-                    </span>
-
-                    <span class="setting-arrow">
-                        ›
-                    </span>
-                </button>
-
-
-                <button
-                    class="setting-item"
-                    type="button"
-                    onclick="openPolicy('privacy')"
-                >
-                    <span class="setting-icon purple">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path
-                                d="M12 3 20 6v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3Z"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linejoin="round"
-                            />
-                            <path
-                                d="m9 12 2 2 4-4"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            />
-                        </svg>
-                    </span>
-
-                    <span class="setting-text">
-                        Privacy Policy
-                    </span>
-
-                    <span class="setting-arrow">
-                        ›
-                    </span>
-                </button>
-
-
-                <button
-                    class="setting-item"
-                    type="button"
-                    onclick="openPolicy('terms')"
-                >
-                    <span class="setting-icon orange">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path
-                                d="M5 3h14v18H5z"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linejoin="round"
-                            />
-                            <path
-                                d="M8 8h8M8 12h8M8 16h5"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                    </span>
-
-                    <span class="setting-text">
-                        Terms of Use
-                    </span>
-
-                    <span class="setting-arrow">
-                        ›
-                    </span>
-                </button>
-
-
-                <button
-                    class="setting-item"
-                    type="button"
-                    onclick="openPolicy('qexc')"
-                >
-                    <span class="setting-icon green">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <circle
-                                cx="12"
-                                cy="12"
-                                r="9"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            />
-                            <path
-                                d="M8 12h8M12 8v8"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                    </span>
-
-                    <span class="setting-text">
-                        QEXC Policy
-                    </span>
-
-                    <span class="setting-arrow">
-                        ›
-                    </span>
-                </button>
-
-
-                <button
-                    class="setting-item"
-                    type="button"
-                    onclick="openPolicy('withdrawal')"
-                >
-                    <span class="setting-icon blue">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path
-                                d="M4 7h16v13H4z"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linejoin="round"
-                            />
-                            <path
-                                d="M8 7V5a2 2 0 0 1 2-2h8"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                            <path
-                                d="M15 13h5"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                    </span>
-
-                    <span class="setting-text">
-                        Money Transfer Policy
-                    </span>
-
-                    <span class="setting-arrow">
-                        ›
-                    </span>
-                </button>
-
-
-                <button
-                    class="setting-item"
-                    type="button"
-                    onclick="showAbout()"
-                >
-                    <span class="setting-icon purple">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <circle
-                                cx="12"
-                                cy="12"
-                                r="9"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            />
-                            <path
-                                d="M12 11v5"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                            />
-                            <path
-                                d="M12 8h.01"
-                                stroke="currentColor"
-                                stroke-width="2.5"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                    </span>
-
-                    <span class="setting-text">
-                        About QEXUS
-                    </span>
-
-                    <span class="setting-arrow">
-                        ›
-                    </span>
-                </button>
-
-            </div>
-
-        </section>
+
+          <button
+            type="button"
+            class="setting-item"
+            onclick="showPolicy('privacy')"
+          >
+
+            <span class="setting-icon">
+              ◇
+            </span>
+
+            <span class="setting-text">
+              Privacy Policy
+            </span>
+
+            <span class="setting-arrow">
+              ›
+            </span>
+
+          </button>
+
+
+          <button
+            type="button"
+            class="setting-item"
+            onclick="showHelp()"
+          >
+
+            <span class="setting-icon">
+              ?
+            </span>
+
+            <span class="setting-text">
+              Help & Support
+            </span>
+
+            <span class="setting-arrow">
+              ›
+            </span>
+
+          </button>
+
+
+          <button
+            type="button"
+            class="setting-item"
+            onclick="showAbout()"
+          >
+
+            <span class="setting-icon">
+              i
+            </span>
+
+            <span class="setting-text">
+              About QEXUS
+            </span>
+
+            <span class="setting-arrow">
+              ›
+            </span>
+
+          </button>
+
+        </div>
+
+      </section>
 
     </main>
 
 
-    <!-- =========================================================
-         BOTTOM NAVIGATION
-         ========================================================= -->
 
-    <nav
-        class="bottom-nav"
-        aria-label="Main navigation"
-    >
+    <!-- ================= BOTTOM NAV ================= -->
 
-        <button
-            class="nav-item active"
-            data-page="home"
-            type="button"
-            onclick="navigate('home')"
-        >
-            <svg viewBox="0 0 24 24" fill="none">
-                <path
-                    d="m3 10 9-7 9 7"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                />
-                <path
-                    d="M5 9v11h14V9"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linejoin="round"
-                />
-                <path
-                    d="M9 20v-6h6v6"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linejoin="round"
-                />
-            </svg>
+    <nav class="bottom-nav">
 
-            <span>Home</span>
-        </button>
+      <button
+        type="button"
+        class="nav-item active"
+        data-page="home"
+        onclick="navigate('home')"
+      >
+        <span class="nav-icon">⌂</span>
+        <span>Home</span>
+      </button>
 
 
-        <button
-            class="nav-item"
-            data-page="earn"
-            type="button"
-            onclick="navigate('earn')"
-        >
-            <svg viewBox="0 0 24 24" fill="none">
-                <path
-                    d="M12 3v18"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                />
-                <path
-                    d="M17 7H9.5a3.5 3.5 0 0 0 0 7H15a3.5 3.5 0 0 1 0 7H7"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                />
-            </svg>
-
-            <span>Earn</span>
-        </button>
+      <button
+        type="button"
+        class="nav-item"
+        data-page="earn"
+        onclick="navigate('earn')"
+      >
+        <span class="nav-icon">+</span>
+        <span>Earn</span>
+      </button>
 
 
-        <button
-            class="nav-item"
-            data-page="leaderboard"
-            type="button"
-            onclick="navigate('leaderboard')"
-        >
-            <svg viewBox="0 0 24 24" fill="none">
-                <path
-                    d="M8 21h8M12 17V5"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                />
-                <path
-                    d="m8 9 4-4 4 4"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                />
-                <path
-                    d="M5 9v8M19 9v8"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                />
-            </svg>
-
-            <span>Ranks</span>
-        </button>
+      <button
+        type="button"
+        class="nav-item"
+        data-page="leaderboard"
+        onclick="navigate('leaderboard')"
+      >
+        <span class="nav-icon">★</span>
+        <span>Ranks</span>
+      </button>
 
 
-        <button
-            class="nav-item"
-            data-page="wallet"
-            type="button"
-            onclick="navigate('wallet')"
-        >
-            <svg viewBox="0 0 24 24" fill="none">
-                <rect
-                    x="3"
-                    y="6"
-                    width="18"
-                    height="14"
-                    rx="3"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                />
-                <path
-                    d="M16 12h5"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                />
-                <circle
-                    cx="16"
-                    cy="12"
-                    r="1"
-                    fill="currentColor"
-                />
-            </svg>
-
-            <span>Wallet</span>
-        </button>
+      <button
+        type="button"
+        class="nav-item"
+        data-page="wallet"
+        onclick="navigate('wallet')"
+      >
+        <span class="nav-icon">৳</span>
+        <span>Wallet</span>
+      </button>
 
 
-        <button
-            class="nav-item"
-            data-page="profile"
-            type="button"
-            onclick="navigate('profile')"
-        >
-            <svg viewBox="0 0 24 24" fill="none">
-                <circle
-                    cx="12"
-                    cy="8"
-                    r="4"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                />
-                <path
-                    d="M4 21a8 8 0 0 1 16 0"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                />
-            </svg>
-
-            <span>Profile</span>
-        </button>
+      <button
+        type="button"
+        class="nav-item"
+        data-page="profile"
+        onclick="navigate('profile')"
+      >
+        <span class="nav-icon">●</span>
+        <span>Profile</span>
+      </button>
 
     </nav>
 
-
-    <!-- =========================================================
-         WITHDRAW MODAL
-         ========================================================= -->
-
-    <div
-        id="withdrawModal"
-        class="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="withdrawTitle"
-    >
-
-        <div class="modal-content">
-
-            <div class="modal-handle"></div>
-
-            <button
-                class="modal-close"
-                type="button"
-                onclick="closeWithdrawModal()"
-                aria-label="Close"
-            >
-                ×
-            </button>
-
-            <div
-                class="modal-title"
-                id="withdrawTitle"
-            >
-                Withdraw
-            </div>
-
-            <div class="modal-subtitle">
-                Minimum withdrawal ৳100
-            </div>
+  </div>
 
 
-            <div class="withdraw-balance">
 
-                <div>
-                    <div class="wallet-stat-label">
-                        Available
-                    </div>
+  <!-- ================= WITHDRAW MODAL ================= -->
 
-                    <div
-                        id="withdrawAvailable"
-                        class="wallet-stat-value"
-                    >
-                        ৳0.00
-                    </div>
-                </div>
+  <div
+    id="withdrawModal"
+    class="modal"
+  >
 
-                <div class="withdraw-balance-icon">
-                    ৳
-                </div>
+    <div class="modal-content">
 
-            </div>
+      <div class="modal-handle"></div>
 
 
-            <div class="input-group">
-
-                <label
-                    class="input-label"
-                    for="withdrawAmount"
-                >
-                    Amount (BDT)
-                </label>
-
-                <input
-                    id="withdrawAmount"
-                    class="input"
-                    type="number"
-                    inputmode="decimal"
-                    min="100"
-                    step="1"
-                    placeholder="100"
-                >
-
-                <div
-                    id="withdrawAmountHint"
-                    class="input-hint"
-                >
-                    Minimum ৳100
-                </div>
-
-            </div>
+      <button
+        type="button"
+        class="modal-close"
+        onclick="closeWithdrawModal()"
+      >
+        ×
+      </button>
 
 
-            <div class="input-group">
+      <div class="modal-title">
+        Withdraw
+      </div>
 
-                <label class="input-label">
-                    Payment Method
-                </label>
-
-                <div class="method-grid">
-
-                    <button
-                        class="method-btn active"
-                        type="button"
-                        data-method="bKash"
-                        onclick="selectWithdrawMethod(this)"
-                    >
-                        <span class="method-logo">
-                            bK
-                        </span>
-
-                        <span>bKash</span>
-                    </button>
+      <div class="modal-subtitle">
+        আপনার QEXC balance থেকে withdrawal request করুন।
+      </div>
 
 
-                    <button
-                        class="method-btn"
-                        type="button"
-                        data-method="Nagad"
-                        onclick="selectWithdrawMethod(this)"
-                    >
-                        <span class="method-logo">
-                            N
-                        </span>
+      <div class="withdraw-balance">
 
-                        <span>Nagad</span>
-                    </button>
+        <div class="withdraw-balance-icon">
+          Q
+        </div>
 
-                </div>
+        <div>
 
-            </div>
+          <div>
+            Available
+          </div>
 
-
-            <div class="input-group">
-
-                <label
-                    class="input-label"
-                    for="withdrawNumber"
-                >
-                    bKash / Nagad Number
-                </label>
-
-                <input
-                    id="withdrawNumber"
-                    class="input"
-                    type="tel"
-                    inputmode="numeric"
-                    maxlength="11"
-                    placeholder="01XXXXXXXXX"
-                >
-
-                <div class="input-hint">
-                    আপনার নিজের valid mobile financial account ব্যবহার করুন।
-                </div>
-
-            </div>
-
-
-            <div class="withdraw-warning">
-                <svg viewBox="0 0 24 24" fill="none">
-                    <path
-                        d="M12 3 21 20H3L12 3Z"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                        stroke-linejoin="round"
-                    />
-                    <path
-                        d="M12 9v4"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                        stroke-linecap="round"
-                    />
-                    <path
-                        d="M12 16h.01"
-                        stroke="currentColor"
-                        stroke-width="2.5"
-                        stroke-linecap="round"
-                    />
-                </svg>
-
-                <span>
-                    Withdrawal request manual review-এর পর process হবে।
-                </span>
-            </div>
-
-
-            <button
-                id="withdrawSubmit"
-                class="primary-btn"
-                type="button"
-                onclick="submitWithdrawal()"
-            >
-                Withdrawal Request পাঠান
-            </button>
-
-
-            <button
-                class="secondary-btn"
-                type="button"
-                onclick="closeWithdrawModal()"
-            >
-                Cancel
-            </button>
+          <strong id="withdrawAvailable">
+            ৳0.00
+          </strong>
 
         </div>
 
-    </div>
+      </div>
 
 
-    <!-- =========================================================
-         OFFICIAL CHANNEL / ANNOUNCEMENT POPUP
-         ========================================================= -->
+      <div class="input-group">
 
-    <div
-        id="announcementModal"
-        class="modal announcement-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="announcementTitle"
-    >
+        <label class="input-label">
+          Amount (BDT)
+        </label>
 
-        <div class="modal-content announcement-content">
+        <input
+          id="withdrawAmount"
+          class="input"
+          type="number"
+          min="100"
+          step="1"
+          placeholder="100"
+        >
 
-            <div class="announcement-icon">
-                <svg viewBox="0 0 24 24" fill="none">
-                    <path
-                        d="M21 5 3 12l7 2 2 7 3-6 6-10Z"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                        stroke-linejoin="round"
-                    />
-                    <path
-                        d="m10 14 5-5"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                        stroke-linecap="round"
-                    />
-                </svg>
-            </div>
+        <div class="input-hint">
+          Minimum withdrawal ৳100
+        </div>
+
+      </div>
 
 
-            <div
-                id="announcementTitle"
-                class="modal-title"
-            >
-                Join our Official Channel
-            </div>
+      <div class="input-group">
+
+        <label class="input-label">
+          Payment Method
+        </label>
 
 
-            <div
-                id="announcementDescription"
-                class="modal-subtitle announcement-description"
-            >
-                QEXUS-এর সর্বশেষ খবর, গুরুত্বপূর্ণ update এবং announcements পেতে আমাদের official channel-এ join করুন।
-            </div>
+        <div class="method-grid">
+
+          <button
+            type="button"
+            class="method-btn"
+            data-method="bKash"
+            onclick="selectWithdrawMethod('bKash')"
+          >
+
+            <span class="method-logo">
+              bK
+            </span>
+
+            <span>
+              bKash
+            </span>
+
+          </button>
 
 
-            <a
-                id="announcementButton"
-                class="primary-btn announcement-button"
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                Join Channel
-            </a>
+          <button
+            type="button"
+            class="method-btn"
+            data-method="Nagad"
+            onclick="selectWithdrawMethod('Nagad')"
+          >
 
+            <span class="method-logo">
+              N
+            </span>
 
-            <button
-                id="announcementLater"
-                class="secondary-btn"
-                type="button"
-                onclick="closeAnnouncement()"
-            >
-                Maybe Later
-            </button>
+            <span>
+              Nagad
+            </span>
+
+          </button>
 
         </div>
 
+      </div>
+
+
+      <div class="input-group">
+
+        <label class="input-label">
+          Account Number
+        </label>
+
+        <input
+          id="withdrawNumber"
+          class="input"
+          type="tel"
+          inputmode="numeric"
+          maxlength="11"
+          placeholder="01XXXXXXXXX"
+        >
+
+      </div>
+
+
+      <div class="withdraw-warning">
+        Withdrawal request manual review-এর মাধ্যমে process হবে।
+      </div>
+
+
+      <button
+        id="withdrawSubmit"
+        type="button"
+        class="primary-btn"
+        onclick="submitWithdrawal()"
+      >
+        Request Withdrawal
+      </button>
+
     </div>
 
-
-    <!-- =========================================================
-         NOTIFICATIONS MODAL
-         ========================================================= -->
-
-    <div
-        id="notificationModal"
-        class="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="notificationTitle"
-    >
-
-        <div class="modal-content">
-
-            <div class="modal-handle"></div>
-
-            <button
-                class="modal-close"
-                type="button"
-                onclick="closeNotifications()"
-                aria-label="Close"
-            >
-                ×
-            </button>
-
-            <div
-                id="notificationTitle"
-                class="modal-title"
-            >
-                Notifications
-            </div>
-
-            <div class="modal-subtitle">
-                আপনার QEXUS activity ও গুরুত্বপূর্ণ update।
-            </div>
+  </div>
 
 
-            <div
-                id="notificationList"
-                class="notification-list"
-            >
 
-                <div class="empty-state compact">
+  <!-- ================= ANNOUNCEMENT ================= -->
 
-                    <div class="empty-icon">
-                        <svg viewBox="0 0 24 24" fill="none">
-                            <path
-                                d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            />
-                            <path
-                                d="M10 21h4"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            />
-                        </svg>
-                    </div>
+  <div
+    id="announcementModal"
+    class="modal announcement-modal"
+  >
 
-                    <div class="empty-title">
-                        কোনো notification নেই
-                    </div>
+    <div class="modal-content announcement-content">
 
-                </div>
+      <button
+        type="button"
+        class="modal-close"
+        onclick="closeAnnouncement()"
+      >
+        ×
+      </button>
 
-            </div>
+
+      <div class="announcement-icon">
+        Q
+      </div>
+
+
+      <div
+        id="announcementTitle"
+        class="modal-title"
+      >
+        Join our Official Channel
+      </div>
+
+
+      <div
+        id="announcementDescription"
+        class="announcement-description"
+      >
+        QEXUS-এর official update, announcement এবং important information পেতে আমাদের official channel-এ join করুন।
+      </div>
+
+
+      <button
+        type="button"
+        class="primary-btn"
+        onclick="openOfficialChannel()"
+      >
+        Official Channel
+      </button>
+
+
+      <button
+        type="button"
+        class="secondary-btn"
+        onclick="closeAnnouncement()"
+      >
+        পরে দেখব
+      </button>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- ================= NOTIFICATIONS ================= -->
+
+  <div
+    id="notificationModal"
+    class="modal"
+  >
+
+    <div class="modal-content">
+
+      <button
+        type="button"
+        class="modal-close"
+        onclick="closeNotifications()"
+      >
+        ×
+      </button>
+
+
+      <div class="modal-title">
+        Notifications
+      </div>
+
+      <div class="modal-subtitle">
+        QEXUS-এর latest updates
+      </div>
+
+
+      <div
+        id="notificationList"
+        class="notification-list"
+      >
+
+        <div class="empty-state compact">
+
+          <div class="empty-icon">
+            ♢
+          </div>
+
+          <div class="empty-title">
+            কোনো notification নেই
+          </div>
+
+          <div class="empty-description">
+            নতুন notification এলে এখানে দেখা যাবে।
+          </div>
 
         </div>
 
-    </div>
-
-
-    <!-- =========================================================
-         POLICY / CONTENT MODAL
-         ========================================================= -->
-
-    <div
-        id="contentModal"
-        class="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="contentModalTitle"
-    >
-
-        <div class="modal-content policy-content">
-
-            <div class="modal-handle"></div>
-
-            <button
-                class="modal-close"
-                type="button"
-                onclick="closeContentModal()"
-                aria-label="Close"
-            >
-                ×
-            </button>
-
-            <div
-                id="contentModalTitle"
-                class="modal-title"
-            >
-                QEXUS
-            </div>
-
-            <div
-                id="contentModalBody"
-                class="policy-body"
-            >
-                Content loading...
-            </div>
-
-        </div>
+      </div>
 
     </div>
 
+  </div>
 
-    <!-- =========================================================
-         HELP / ABOUT MODAL
-         ========================================================= -->
 
-    <div
-        id="infoModal"
-        class="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="infoModalTitle"
-    >
 
-        <div class="modal-content">
+  <!-- ================= POLICY ================= -->
 
-            <div class="modal-handle"></div>
+  <div
+    id="policyModal"
+    class="modal"
+  >
 
-            <button
-                class="modal-close"
-                type="button"
-                onclick="closeInfoModal()"
-                aria-label="Close"
-            >
-                ×
-            </button>
+    <div class="modal-content">
 
-            <div
-                id="infoModalTitle"
-                class="modal-title"
-            >
-                QEXUS
-            </div>
+      <button
+        type="button"
+        class="modal-close"
+        onclick="closeInfoModal()"
+      >
+        ×
+      </button>
 
-            <div
-                id="infoModalBody"
-                class="policy-body"
-            >
-                Loading...
-            </div>
 
-        </div>
+      <div
+        id="policyTitle"
+        class="modal-title"
+      >
+        Policy
+      </div>
+
+
+      <div
+        id="policyBody"
+        class="policy-body"
+      ></div>
 
     </div>
 
-
-    <!-- =========================================================
-         TOAST
-         ========================================================= -->
-
-    <div
-        id="toast"
-        class="toast"
-        role="status"
-        aria-live="polite"
-    ></div>
+  </div>
 
 
-    <!-- =========================================================
-         GLOBAL LOADING
-         ========================================================= -->
 
-    <div
-        id="globalLoader"
-        class="global-loader hidden"
-        aria-hidden="true"
-    >
+  <!-- ================= INFO MODAL ================= -->
 
-        <div class="loader-spinner"></div>
+  <div
+    id="infoModal"
+    class="modal"
+  >
 
-        <div class="loader-text">
-            QEXUS
-        </div>
+    <div class="modal-content">
+
+      <button
+        type="button"
+        class="modal-close"
+        onclick="closeInfoModal()"
+      >
+        ×
+      </button>
+
+
+      <div
+        id="infoModalTitle"
+        class="modal-title"
+      >
+        QEXUS
+      </div>
+
+
+      <div
+        id="infoModalBody"
+        class="policy-body"
+      ></div>
 
     </div>
 
+  </div>
 
-</div>
 
 
-<!-- =============================================================
-     Main JavaScript
-     ============================================================= -->
+  <!-- ================= TOAST ================= -->
 
-<script src="js/app.js"></script>
+  <div
+    id="toast"
+    class="toast"
+  >
+    <span id="toastMessage"></span>
+  </div>
+
+
+
+  <!-- APP JS -->
+  <script src="js/app.js"></script>
 
 </body>
-        </html>
+</html>
