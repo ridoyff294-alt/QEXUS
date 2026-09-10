@@ -1,2146 +1,167 @@
 /* =========================================================
-   QEXUS — COMPLETE STYLE
-   Mobile-first Rewards / Fintech UI
+   QEXUS — COMPLETE APP.JS
+   Telegram Mini App + FastAPI Backend
    ========================================================= */
 
-:root {
-  --bg: #f6f8fb;
-  --surface: #ffffff;
-  --surface-soft: #f8fafc;
-
-  --text: #111827;
-  --text-secondary: #667085;
-  --text-muted: #98a2b3;
-
-  --border: #e8edf3;
-
-  --primary: #1769ff;
-  --primary-dark: #0f56d9;
-
-  --green: #12b76a;
-  --green-soft: #eafaf2;
-
-  --blue: #1769ff;
-  --blue-soft: #edf4ff;
-
-  --purple: #7f56d9;
-  --purple-soft: #f3efff;
-
-  --orange: #f79009;
-  --orange-soft: #fff4e5;
-
-  --red: #f04438;
-  --red-soft: #fff0ee;
-
-  --yellow: #fdb022;
-  --yellow-soft: #fff8e7;
-
-  --shadow-sm: 0 2px 10px rgba(16, 24, 40, 0.05);
-  --shadow-md: 0 8px 25px rgba(16, 24, 40, 0.07);
-
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 20px;
-
-  --nav-height: 72px;
-}
+"use strict";
 
 
 /* =========================================================
-   RESET
+   CONFIG
    ========================================================= */
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  -webkit-tap-highlight-color: transparent;
-}
+const API_BASE =
+  "https://qexus-backend.onrender.com/api";
 
-html {
-  width: 100%;
-  min-height: 100%;
-  background: var(--bg);
-  scroll-behavior: smooth;
-}
+const BOT_USERNAME =
+  "Qexus_Official_Bot";
 
-body {
-  width: 100%;
-  min-height: 100vh;
-  background: var(--bg);
-  color: var(--text);
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    Arial,
-    sans-serif;
+const OFFICIAL_CHANNEL_URL =
+  "https://t.me/Qexus_Official";
 
-  font-size: 14px;
-  line-height: 1.5;
-
-  overflow-x: hidden;
-}
-
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
-
-button {
-  border: 0;
-  background: none;
-  color: inherit;
-  cursor: pointer;
-}
-
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-input {
-  outline: none;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
+const QEXC_TO_BDT = 0.10;
+const MIN_WITHDRAW_BDT = 100;
 
 
 /* =========================================================
-   APP
+   TELEGRAM
    ========================================================= */
 
-.app {
-  width: 100%;
-  min-height: 100vh;
-  padding-bottom: calc(var(--nav-height) + 20px);
-}
+const tg = window.Telegram?.WebApp || null;
 
+if (tg) {
+  try {
+    tg.ready();
+    tg.expand();
 
-/* =========================================================
-   TOPBAR
-   ========================================================= */
+    if (tg.setHeaderColor) {
+      tg.setHeaderColor("#ffffff");
+    }
 
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-
-  width: 100%;
-  min-height: 68px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  padding:
-    max(10px, env(safe-area-inset-top))
-    16px
-    10px;
-
-  background: rgba(255, 255, 255, 0.96);
-  border-bottom: 1px solid var(--border);
-
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.brand-logo {
-  width: 40px;
-  height: 40px;
-
-  flex: 0 0 40px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 12px;
-
-  background: #111827;
-  color: #ffffff;
-
-  font-size: 19px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-
-  box-shadow: var(--shadow-sm);
-}
-
-.brand-name {
-  font-size: 17px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-  line-height: 1.15;
-}
-
-.brand-subtitle {
-  margin-top: 2px;
-  color: var(--text-muted);
-  font-size: 10px;
-  font-weight: 500;
-}
-
-.top-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.icon-button {
-  position: relative;
-
-  width: 40px;
-  height: 40px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border: 1px solid var(--border);
-  border-radius: 12px;
-
-  background: var(--surface);
-
-  color: var(--text-secondary);
-
-  font-size: 18px;
-
-  transition:
-    transform 0.15s ease,
-    background 0.15s ease;
-}
-
-.icon-button:active {
-  transform: scale(0.94);
-  background: var(--surface-soft);
-}
-
-.notification-badge {
-  position: absolute;
-  top: -3px;
-  right: -3px;
-
-  min-width: 17px;
-  height: 17px;
-
-  padding: 0 4px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 20px;
-
-  background: var(--red);
-  color: #ffffff;
-
-  font-size: 9px;
-  font-weight: 700;
-
-  border: 2px solid #ffffff;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 50%;
-
-  background: var(--blue-soft);
-  color: var(--primary);
-
-  font-weight: 800;
-  font-size: 14px;
-
-  border: 1px solid #dce8ff;
-}
-
-
-/* =========================================================
-   MAIN / PAGES
-   ========================================================= */
-
-main {
-  width: 100%;
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 18px 16px 24px;
-}
-
-.page {
-  display: none;
-  animation: pageIn 0.18s ease;
-}
-
-.page.active {
-  display: block;
-}
-
-@keyframes pageIn {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
+    if (tg.setBackgroundColor) {
+      tg.setBackgroundColor("#f6f8fb");
+    }
+  } catch (error) {
+    console.warn("Telegram initialization failed:", error);
   }
 }
 
-.page-intro {
-  margin-bottom: 18px;
-}
 
-.eyebrow {
-  margin-bottom: 4px;
+/* =========================================================
+   APP STATE
+   ========================================================= */
 
-  color: var(--primary);
+const state = {
+  user: null,
+  wallet: {
+    balance_qexc: 0,
+    locked_qexc: 0,
+    total_earned: 0,
+    total_withdrawn: 0
+  },
 
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 1px;
-}
+  transactions: [],
+  tasks: [],
+  leaderboard: [],
 
-.welcome-title {
-  font-size: 25px;
-  line-height: 1.2;
-  letter-spacing: -0.7px;
-  font-weight: 800;
-}
+  currentPage: "home",
+  leaderboardPeriod: "all",
 
-.page-heading {
-  margin-bottom: 20px;
-}
+  withdrawMethod: null,
 
-.page-title {
-  font-size: 25px;
-  line-height: 1.2;
+  daily: {
+    claimed: false,
+    nextClaimAt: null
+  },
 
-  font-weight: 800;
-  letter-spacing: -0.6px;
-}
+  notifications: [],
 
-.page-description {
-  margin-top: 6px;
-
-  color: var(--text-secondary);
-
-  font-size: 13px;
-  line-height: 1.55;
-}
+  loading: false
+};
 
 
 /* =========================================================
-   BALANCE CARD
+   HELPERS
    ========================================================= */
 
-.balance-card {
-  position: relative;
-
-  margin-bottom: 22px;
-  padding: 20px;
-
-  overflow: hidden;
-
-  border-radius: var(--radius-lg);
-
-  background: var(--text);
-  color: #ffffff;
-
-  box-shadow: var(--shadow-md);
-}
-
-.balance-card::after {
-  content: "";
-
-  position: absolute;
-  width: 160px;
-  height: 160px;
-
-  right: -70px;
-  top: -70px;
-
-  border-radius: 50%;
-
-  border: 25px solid rgba(255, 255, 255, 0.04);
-}
-
-.balance-card-top {
-  position: relative;
-  z-index: 2;
-
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-}
-
-.balance-label {
-  color: rgba(255, 255, 255, 0.62);
-
-  font-size: 11px;
-  font-weight: 500;
-
-  margin-bottom: 4px;
-}
-
-.balance-value {
-  font-size: 34px;
-  line-height: 1.1;
-
-  font-weight: 800;
-  letter-spacing: -1px;
-}
-
-.balance-qexc {
-  margin-top: 5px;
-
-  color: rgba(255, 255, 255, 0.65);
-
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.balance-coin {
-  width: 52px;
-  height: 52px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 15px;
-
-  background: rgba(255, 255, 255, 0.1);
-
-  color: #ffffff;
-
-  font-size: 21px;
-  font-weight: 800;
-
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.balance-divider {
-  height: 1px;
-
-  margin: 18px 0;
-
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.balance-actions {
-  position: relative;
-  z-index: 2;
-
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.balance-action {
-  height: 42px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-
-  border-radius: 11px;
-
-  background: rgba(255, 255, 255, 0.08);
-
-  color: #ffffff;
-
-  font-size: 12px;
-  font-weight: 700;
-
-  transition: transform 0.15s ease;
-}
-
-.balance-action:active {
-  transform: scale(0.97);
-}
-
-.action-icon {
-  width: 24px;
-  height: 24px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 7px;
-
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.action-icon.green {
-  background: rgba(18, 183, 106, 0.16);
-  color: #57d99b;
-}
-
-.action-icon.blue {
-  background: rgba(23, 105, 255, 0.16);
-  color: #7ca8ff;
-}
-
-.green {
-  color: var(--green);
-}
-
-.blue {
-  color: var(--blue);
-}
-
-.purple {
-  color: var(--purple);
-}
-
-.orange {
-  color: var(--orange);
-}
-
-
-/* =========================================================
-   SECTION HEADERS
-   ========================================================= */
-
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  margin: 22px 0 11px;
-}
-
-.section-kicker {
-  color: var(--text-muted);
-
-  font-size: 9px;
-  font-weight: 800;
-
-  letter-spacing: 0.9px;
-}
-
-.section-title {
-  margin-top: 1px;
-
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: -0.2px;
-}
-
-.section-link {
-  color: var(--primary);
-
-  font-size: 11px;
-  font-weight: 700;
-}
-
-
-/* =========================================================
-   QUICK GRID
-   ========================================================= */
-
-.quick-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.quick-item {
-  min-height: 68px;
-
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  padding: 12px;
-
-  background: var(--surface);
-
-  border: 1px solid var(--border);
-  border-radius: 15px;
-
-  box-shadow: var(--shadow-sm);
-
-  text-align: left;
-
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.quick-item:active {
-  transform: scale(0.97);
-}
-
-.quick-icon {
-  width: 38px;
-  height: 38px;
-
-  flex: 0 0 38px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 11px;
-
-  font-size: 15px;
-  font-weight: 800;
-}
-
-.quick-icon.green {
-  background: var(--green-soft);
-  color: var(--green);
-}
-
-.quick-icon.blue {
-  background: var(--blue-soft);
-  color: var(--blue);
-}
-
-.quick-icon.purple {
-  background: var(--purple-soft);
-  color: var(--purple);
-}
-
-.quick-icon.orange {
-  background: var(--orange-soft);
-  color: var(--orange);
-}
-
-.quick-label {
-  flex: 1;
-
-  font-size: 12px;
-  font-weight: 750;
-}
-
-.quick-arrow {
-  color: var(--text-muted);
-  font-size: 17px;
-}
-
-
-/* =========================================================
-   MINI STATUS
-   ========================================================= */
-
-.mini-status-card {
-  margin-top: 12px;
-
-  min-height: 68px;
-
-  display: flex;
-  align-items: center;
-  gap: 11px;
-
-  padding: 12px;
-
-  background: var(--surface);
-
-  border: 1px solid var(--border);
-  border-radius: 15px;
-
-  box-shadow: var(--shadow-sm);
-}
-
-.mini-status-icon {
-  width: 38px;
-  height: 38px;
-
-  flex: 0 0 38px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 11px;
-
-  background: var(--yellow-soft);
-  color: var(--yellow);
-
-  font-weight: 800;
-}
-
-.mini-status-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.mini-status-title {
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.mini-status-text {
-  margin-top: 2px;
-
-  color: var(--text-secondary);
-
-  font-size: 10px;
-}
-
-
-/* =========================================================
-   TRANSACTIONS
-   ========================================================= */
-
-.transaction-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.transaction {
-  min-height: 64px;
-
-  display: flex;
-  align-items: center;
-  gap: 11px;
-
-  padding: 11px 12px;
-
-  background: var(--surface);
-
-  border: 1px solid var(--border);
-  border-radius: 14px;
-
-  box-shadow: var(--shadow-sm);
-}
-
-.transaction-icon {
-  width: 37px;
-  height: 37px;
-
-  flex: 0 0 37px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 10px;
-
-  background: var(--green-soft);
-  color: var(--green);
-
-  font-weight: 800;
-}
-
-.transaction-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.transaction-title {
-  font-size: 12px;
-  font-weight: 750;
-
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.transaction-date {
-  margin-top: 2px;
-
-  color: var(--text-muted);
-
-  font-size: 10px;
-}
-
-.transaction-amount {
-  font-size: 12px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.transaction-amount.positive {
-  color: var(--green);
-}
-
-.transaction-amount.negative {
-  color: var(--red);
-}
-
-
-/* =========================================================
-   EMPTY STATE
-   ========================================================= */
-
-.empty-state {
-  width: 100%;
-
-  padding: 30px 18px;
-
-  text-align: center;
-
-  background: var(--surface);
-
-  border: 1px dashed #dce3eb;
-  border-radius: 16px;
-}
-
-.empty-state.compact {
-  padding: 22px 15px;
-}
-
-.empty-icon {
-  width: 42px;
-  height: 42px;
-
-  margin: 0 auto 9px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 12px;
-
-  background: var(--surface-soft);
-
-  color: var(--text-muted);
-
-  font-size: 18px;
-}
-
-.empty-title {
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.empty-description {
-  max-width: 290px;
-
-  margin: 4px auto 0;
-
-  color: var(--text-secondary);
-
-  font-size: 10px;
-  line-height: 1.5;
-}
-
-
-/* =========================================================
-   EARN CARDS
-   ========================================================= */
-
-.earn-card {
-  margin-bottom: 12px;
-
-  padding: 16px;
-
-  background: var(--surface);
-
-  border: 1px solid var(--border);
-  border-radius: 17px;
-
-  box-shadow: var(--shadow-sm);
-}
-
-.featured-earn-card {
-  border-color: #dfe8f7;
-}
-
-.earn-card-head {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-}
-
-.earn-main-icon {
-  width: 44px;
-  height: 44px;
-
-  flex: 0 0 44px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 13px;
-
-  background: var(--blue-soft);
-  color: var(--blue);
-
-  font-size: 17px;
-  font-weight: 800;
-}
-
-.earn-card-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.earn-card-title {
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.earn-card-subtitle {
-  margin-top: 2px;
-
-  color: var(--text-secondary);
-
-  font-size: 10px;
-}
-
-.earn-reward {
-  align-self: flex-start;
-
-  padding: 5px 8px;
-
-  border-radius: 8px;
-
-  background: var(--green-soft);
-  color: var(--green);
-
-  font-size: 10px;
-  font-weight: 800;
-
-  white-space: nowrap;
-}
-
-
-/* =========================================================
-   AD AREA
-   ========================================================= */
-
-.ad-container {
-  min-height: 120px;
-
-  margin: 15px 0;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  padding: 18px;
-
-  border: 1px dashed #d8e0ea;
-  border-radius: 14px;
-
-  background: var(--surface-soft);
-
-  text-align: center;
-}
-
-.ad-placeholder-icon {
-  width: 40px;
-  height: 40px;
-
-  margin-bottom: 7px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 50%;
-
-  background: var(--blue-soft);
-  color: var(--blue);
-
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.ad-label {
-  font-size: 11px;
-  font-weight: 800;
-}
-
-#adStatus {
-  margin-top: 3px;
-
-  color: var(--text-muted);
-
-  font-size: 9px;
-}
-
-
-/* =========================================================
-   COUNTDOWN
-   ========================================================= */
-
-.countdown-box {
-  margin: 15px 0;
-
-  padding: 11px 13px;
-
-  border-radius: 12px;
-
-  background: var(--surface-soft);
-
-  border: 1px solid var(--border);
-
-  text-align: center;
-}
-
-.countdown-label {
-  color: var(--text-muted);
-
-  font-size: 9px;
-  font-weight: 600;
-}
-
-.countdown-value {
-  margin-top: 2px;
-
-  color: var(--text);
-
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: 0.2px;
-}
-
-
-/* =========================================================
-   BUTTONS
-   ========================================================= */
-
-.primary-btn,
-.secondary-btn {
-  width: 100%;
-  min-height: 44px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 12px;
-
-  font-size: 12px;
-  font-weight: 800;
-
-  transition:
-    transform 0.15s ease,
-    opacity 0.15s ease;
-}
-
-.primary-btn {
-  background: var(--primary);
-  color: #ffffff;
-
-  box-shadow: 0 5px 15px rgba(23, 105, 255, 0.16);
-}
-
-.primary-btn:active,
-.secondary-btn:active {
-  transform: scale(0.98);
-}
-
-.secondary-btn {
-  margin-top: 10px;
-
-  background: var(--surface);
-
-  border: 1px solid var(--border);
-
-  color: var(--text);
-}
-
-
-/* =========================================================
-   TASK SUMMARY
-   ========================================================= */
-
-.task-summary-card {
-  margin-top: 16px;
-
-  min-height: 70px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  padding: 13px;
-
-  background: var(--surface);
-
-  border: 1px solid var(--border);
-  border-radius: 15px;
-}
-
-.task-summary-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.task-summary-icon {
-  width: 39px;
-  height: 39px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 11px;
-
-  background: var(--green-soft);
-  color: var(--green);
-
-  font-weight: 800;
-}
-
-.task-summary-title {
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.task-summary-subtitle {
-  margin-top: 2px;
-
-  color: var(--text-secondary);
-
-  font-size: 10px;
-}
-
-.task-count {
-  min-width: 30px;
-  height: 30px;
-
-  padding: 0 8px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 9px;
-
-  background: var(--blue-soft);
-  color: var(--blue);
-
-  font-size: 11px;
-  font-weight: 800;
-}
-
-
-/* =========================================================
-   TASK LIST
-   ========================================================= */
-
-.task-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.task-card {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-
-  padding: 13px;
-
-  background: var(--surface);
-
-  border: 1px solid var(--border);
-  border-radius: 15px;
-
-  box-shadow: var(--shadow-sm);
-}
-
-.task-icon {
-  width: 42px;
-  height: 42px;
-
-  flex: 0 0 42px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 12px;
-
-  background: var(--purple-soft);
-  color: var(--purple);
-
-  font-size: 15px;
-  font-weight: 800;
-}
-
-.task-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.task-title {
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.task-meta {
-  margin-top: 2px;
-
-  color: var(--text-secondary);
-
-  font-size: 10px;
-}
-
-.task-reward {
-  padding: 5px 7px;
-
-  border-radius: 8px;
-
-  background: var(--green-soft);
-  color: var(--green);
-
-  font-size: 10px;
-  font-weight: 800;
-
-  white-space: nowrap;
-}
-
-
-/* =========================================================
-   LEADERBOARD
-   ========================================================= */
-
-.leaderboard-tabs {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-
-  margin-bottom: 15px;
-
-  padding: 4px;
-
-  background: #edf1f6;
-
-  border-radius: 12px;
-}
-
-.leaderboard-tab {
-  min-height: 34px;
-
-  border-radius: 9px;
-
-  color: var(--text-secondary);
-
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.leaderboard-tab.active {
-  background: var(--surface);
-  color: var(--text);
-
-  box-shadow: var(--shadow-sm);
-}
-
-.leaderboard-top {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 7px;
-
-  margin-bottom: 10px;
-}
-
-.podium-card {
-  padding: 13px 7px;
-
-  background: var(--surface);
-
-  border: 1px solid var(--border);
-  border-radius: 15px;
-
-  text-align: center;
-}
-
-.podium-rank {
-  color: var(--text-muted);
-
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.podium-name {
-  margin-top: 7px;
-
-  font-size: 10px;
-  font-weight: 800;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.podium-score {
-  margin-top: 3px;
-
-  color: var(--green);
-
-  font-size: 9px;
-  font-weight: 700;
-}
-
-.leaderboard-list {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.leaderboard-row {
-  min-height: 58px;
-
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  padding: 10px 12px;
-
-  background: var(--surface);
-
-  border: 1px solid var(--border);
-  border-radius: 13px;
-}
-
-.leaderboard-rank {
-  width: 25px;
-
-  color: var(--text-muted);
-
-  font-size: 10px;
-  font-weight: 800;
-
-  text-align: center;
-}
-
-.leaderboard-avatar {
-  width: 34px;
-  height: 34px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 50%;
-
-  background: var(--blue-soft);
-  color: var(--blue);
-
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.leaderboard-user {
-  flex: 1;
-  min-width: 0;
-}
-
-.leaderboard-name {
-  font-size: 11px;
-  font-weight: 800;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.leaderboard-score {
-  color: var(--green);
-
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.leaderboard-loading {
-  padding: 25px;
-
-  color: var(--text-muted);
-
-  text-align: center;
-
-  font-size: 11px;
-}
-
-.my-rank-card {
-  margin-top: 12px;
-
-  padding: 14px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  background: var(--text);
-  color: #ffffff;
-
-  border-radius: 15px;
-}
-
-.my-rank-label {
-  color: rgba(255, 255, 255, 0.65);
-
-  font-size: 10px;
-}
-
-.my-rank-value {
-  font-size: 16px;
-  font-weight: 800;
-}
-
-
-/* =========================================================
-   WALLET
-   ========================================================= */
-
-.wallet-card {
-  margin-bottom: 13px;
-
-  padding: 18px;
-
-  background: var(--surface);
-
-  border: 1px solid var(--border);
-  border-radius: 17px;
-
-  box-shadow: var(--shadow-sm);
-}
-
-.wallet-balance-label {
-  color: var(--text-secondary);
-
-  font-size: 10px;
-}
-
-.wallet-qexc {
-  margin-top: 2px;
-
-  font-size: 23px;
-  font-weight: 800;
-}
-
-.wallet-bdt {
-  margin-top: 2px;
-
-  color: var(--green);
-
-  font-size: 14px;
-  font-weight: 750;
-}
-
-.wallet-divider {
-  height: 1px;
-
-  margin: 15px 0;
-
-  background: var(--border);
-}
-
-.wallet-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.wallet-stat {
-  padding: 10px;
-
-  background: var(--surface-soft);
-
-  border-radius: 11px;
-}
-
-.wallet-stat-label {
-  color: var(--text-muted);
-
-  font-size: 9px;
-}
-
-.wallet-stat-value {
-  margin-top: 2px;
-
-  font-size: 12px;
-  font-weight: 800;
-}
-
-
-/* =========================================================
-   PROFILE
-   ========================================================= */
-
-.profile-header {
-  padding: 20px;
-
-  background: var(--surface);
-
-  border: 1px solid var(--border);
-  border-radius: 18px;
-
-  text-align: center;
-
-  box-shadow: var(--shadow-sm);
-}
-
-.profile-avatar {
-  width: 68px;
-  height: 68px;
-
-  margin: 0 auto 9px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 50%;
-
-  background: var(--blue-soft);
-  color: var(--primary);
-
-  font-size: 22px;
-  font-weight: 800;
-}
-
-.profile-name {
-  font-size: 17px;
-  font-weight: 800;
-}
-
-.profile-username {
-  margin-top: 2px;
-
-  color: var(--text-muted);
-
-  font-size: 10px;
-}
-
-.profile-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-
-  margin-top: 17px;
-  padding-top: 15px;
-
-  border-top: 1px solid var(--border);
-}
-
-.profile-stat + .profile-stat {
-  border-left: 1px solid var(--border);
-}
-
-.profile-stat-value {
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.profile-stat-label {
-  margin-top: 1px;
-
-  color: var(--text-muted);
-
-  font-size: 9px;
-}
-
-
-/* =========================================================
-   REFERRAL
-   ========================================================= */
-
-.referral-card {
-  margin-top: 12px;
-
-  padding: 16px;
-
-  background: var(--surface);
-
-  border: 1px solid var(--border);
-  border-radius: 17px;
-}
-
-.referral-title {
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.referral-description {
-  margin-top: 4px;
-
-  color: var(--text-secondary);
-
-  font-size: 10px;
-  line-height: 1.5;
-}
-
-.referral-box {
-  margin-top: 12px;
-}
-
-.referral-box .input {
-  width: 100%;
-}
-
-.referral-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-
-  margin-top: 9px;
-}
-
-.referral-actions .secondary-btn {
-  margin-top: 0;
-}
-
-
-/* =========================================================
-   SETTINGS
-   ========================================================= */
-
-.settings-list {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.setting-item {
-  width: 100%;
-  min-height: 54px;
-
-  display: flex;
-  align-items: center;
-  gap: 11px;
-
-  padding: 9px 12px;
-
-  background: var(--surface);
-
-  border: 1px solid var(--border);
-  border-radius: 13px;
-
-  text-align: left;
-}
-
-.setting-icon {
-  width: 34px;
-  height: 34px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 9px;
-
-  background: var(--surface-soft);
-
-  color: var(--text-secondary);
-
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.setting-text {
-  flex: 1;
-
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.setting-arrow {
-  color: var(--text-muted);
-  font-size: 17px;
-}
-
-
-/* =========================================================
-   BOTTOM NAV
-   ========================================================= */
-
-.bottom-nav {
-  position: fixed;
-
-  left: 0;
-  right: 0;
-  bottom: 0;
-
-  z-index: 100;
-
-  height: var(--nav-height);
-
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-
-  padding:
-    7px
-    8px
-    max(7px, env(safe-area-inset-bottom));
-
-  background: rgba(255, 255, 255, 0.97);
-
-  border-top: 1px solid var(--border);
-
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.nav-item {
-  min-width: 0;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  gap: 3px;
-
-  border-radius: 11px;
-
-  color: var(--text-muted);
-
-  font-size: 9px;
-  font-weight: 700;
-}
-
-.nav-icon {
-  width: 25px;
-  height: 25px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 8px;
-
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.nav-item.active {
-  color: var(--primary);
-}
-
-.nav-item.active .nav-icon {
-  background: var(--blue-soft);
-}
-
-
-/* =========================================================
-   MODALS
-   ========================================================= */
-
-.modal {
-  position: fixed;
-
-  inset: 0;
-
-  z-index: 500;
-
-  display: none;
-  align-items: flex-end;
-  justify-content: center;
-
-  padding: 0;
-
-  background: rgba(15, 23, 42, 0.45);
-
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+function $(id) {
+  return document.getElementById(id);
 }
 
-.modal.show {
-  display: flex;
-}
-
-.modal-content {
-  position: relative;
-
-  width: 100%;
-  max-width: 560px;
-  max-height: 90vh;
-
-  overflow-y: auto;
-
-  padding: 11px 16px 22px;
-
-  background: var(--surface);
-
-  border-radius: 22px 22px 0 0;
-
-  animation: modalUp 0.2s ease;
-}
 
-@keyframes modalUp {
-  from {
-    transform: translateY(25px);
-    opacity: 0;
+function escapeHTML(value) {
+  if (value === null || value === undefined) {
+    return "";
   }
 
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.modal-handle {
-  width: 38px;
-  height: 4px;
-
-  margin: 0 auto 16px;
-
-  border-radius: 20px;
-
-  background: #d8dee8;
-}
-
-.modal-close {
-  position: absolute;
-
-  top: 13px;
-  right: 13px;
-
-  width: 32px;
-  height: 32px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 9px;
-
-  background: var(--surface-soft);
-
-  color: var(--text-secondary);
-
-  font-size: 20px;
-}
-
-.modal-title {
-  padding-right: 38px;
-
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-}
-
-.modal-subtitle {
-  margin-top: 4px;
-
-  color: var(--text-secondary);
-
-  font-size: 11px;
-  line-height: 1.5;
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 
-/* =========================================================
-   WITHDRAW
-   ========================================================= */
+function formatQEXC(value) {
+  const number = Number(value || 0);
 
-.withdraw-balance {
-  margin: 16px 0;
-
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  padding: 12px;
-
-  background: var(--surface-soft);
-
-  border: 1px solid var(--border);
-  border-radius: 13px;
-
-  font-size: 10px;
-}
-
-.withdraw-balance-icon {
-  width: 38px;
-  height: 38px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 10px;
-
-  background: var(--blue-soft);
-  color: var(--primary);
-
-  font-weight: 800;
-}
-
-.withdraw-balance strong {
-  display: block;
-
-  margin-top: 1px;
-
-  font-size: 14px;
-}
-
-.input-group {
-  margin-top: 14px;
-}
-
-.input-label {
-  display: block;
-
-  margin-bottom: 5px;
-
-  font-size: 10px;
-  font-weight: 750;
-}
-
-.input {
-  width: 100%;
-  height: 44px;
-
-  padding: 0 12px;
-
-  background: var(--surface);
-
-  border: 1px solid #dce3eb;
-  border-radius: 11px;
-
-  color: var(--text);
-
-  font-size: 12px;
-}
-
-.input:focus {
-  border-color: var(--primary);
-
-  box-shadow:
-    0 0 0 3px rgba(23, 105, 255, 0.08);
-}
-
-.input-hint {
-  margin-top: 4px;
-
-  color: var(--text-muted);
-
-  font-size: 9px;
-}
-
-.method-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.method-btn {
-  min-height: 47px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-
-  border: 1px solid var(--border);
-  border-radius: 11px;
-
-  background: var(--surface);
-
-  font-size: 11px;
-  font-weight: 750;
-}
-
-.method-btn.active {
-  border-color: var(--primary);
-
-  background: var(--blue-soft);
-
-  color: var(--primary);
-}
-
-.method-logo {
-  width: 25px;
-  height: 25px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 7px;
-
-  background: var(--surface-soft);
-
-  font-size: 9px;
-  font-weight: 800;
-}
-
-.withdraw-warning {
-  margin-top: 13px;
-  margin-bottom: 13px;
-
-  padding: 10px;
-
-  border-radius: 10px;
-
-  background: var(--yellow-soft);
-
-  color: #9a6700;
-
-  font-size: 9px;
-  line-height: 1.5;
+  return Math.floor(number).toLocaleString("en-US");
 }
 
 
-/* =========================================================
-   ANNOUNCEMENT
-   ========================================================= */
+function formatBDTFromQEXC(qexc) {
+  const amount = Number(qexc || 0) * QEXC_TO_BDT;
 
-.announcement-modal {
-  align-items: center;
-  padding: 16px;
+  return amount.toLocaleString("en-BD", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
 }
 
-.announcement-modal .modal-content {
-  max-width: 400px;
 
-  padding: 24px 18px 18px;
-
-  border-radius: 20px;
-
-  text-align: center;
-
-  animation: announcementIn 0.2s ease;
-}
-
-@keyframes announcementIn {
-  from {
-    transform: scale(0.96);
-    opacity: 0;
+function formatDate(value) {
+  if (!value) {
+    return "—";
   }
 
-  to {
-    transform: scale(1);
-    opacity: 1;
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
   }
-}
 
-.announcement-icon {
-  width: 58px;
-  height: 58px;
-
-  margin: 0 auto 13px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 17px;
-
-  background: var(--text);
-  color: #ffffff;
-
-  font-size: 22px;
-  font-weight: 800;
-}
-
-.announcement-content .modal-title {
-  padding-right: 0;
-}
-
-.announcement-description {
-  margin: 8px auto 16px;
-
-  color: var(--text-secondary);
-
-  font-size: 11px;
-  line-height: 1.6;
+  return date.toLocaleString("en-BD", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
 
 
-/* =========================================================
-   NOTIFICATIONS
-   ========================================================= */
+function initials(name) {
+  const text = String(name || "U").trim();
 
-.notification-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  if (!text) {
+    return "U";
+  }
 
-  margin-top: 15px;
-}
-
-.notification-item {
-  padding: 12px;
-
-  background: var(--surface-soft);
-
-  border: 1px solid var(--border);
-  border-radius: 12px;
-}
-
-.notification-title {
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.notification-description {
-  margin-top: 3px;
-
-  color: var(--text-secondary);
-
-  font-size: 10px;
-  line-height: 1.5;
-}
-
-.notification-date {
-  margin-top: 5px;
-
-  color: var(--text-muted);
-
-  font-size: 8px;
+  return text
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(part => part.charAt(0).toUpperCase())
+    .join("");
 }
 
 
-/* =========================================================
-   POLICY / INFO
-   ========================================================= */
-
-.policy-body {
-  margin-top: 15px;
-
-  color: var(--text-secondary);
-
-  font-size: 11px;
-  line-height: 1.7;
-}
-
-.policy-body h3 {
-  margin: 15px 0 5px;
-
-  color: var(--text);
-
-  font-size: 13px;
-}
-
-.policy-body p {
-  margin-bottom: 8px;
-}
-
-.policy-body ul {
-  margin: 5px 0 10px 17px;
-}
-
-.policy-body li {
-  margin-bottom: 4px;
+function vibrate() {
+  try {
+    if (tg?.HapticFeedback?.impactOccurred) {
+      tg.HapticFeedback.impactOccurred("light");
+    }
+  } catch (_) {}
 }
 
 
@@ -2148,284 +169,2702 @@ main {
    TOAST
    ========================================================= */
 
-.toast {
-  position: fixed;
+let toastTimer = null;
 
-  left: 50%;
-  bottom: calc(var(--nav-height) + 15px);
+function showToast(message) {
+  const toast = $("toast");
+  const messageEl = $("toastMessage");
 
-  z-index: 1000;
-
-  max-width: calc(100% - 30px);
-
-  padding: 10px 14px;
-
-  transform:
-    translateX(-50%)
-    translateY(15px);
-
-  opacity: 0;
-  pointer-events: none;
-
-  border-radius: 11px;
-
-  background: #111827;
-  color: #ffffff;
-
-  font-size: 10px;
-  font-weight: 650;
-
-  box-shadow: var(--shadow-md);
-
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
-}
-
-.toast.show {
-  opacity: 1;
-
-  transform:
-    translateX(-50%)
-    translateY(0);
-}
-
-
-/* =========================================================
-   GLOBAL LOADER
-   ========================================================= */
-
-.global-loader {
-  position: fixed;
-
-  inset: 0;
-
-  z-index: 2000;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  background: var(--bg);
-
-  transition:
-    opacity 0.25s ease,
-    visibility 0.25s ease;
-}
-
-.global-loader.hidden {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.loader-spinner {
-  width: 32px;
-  height: 32px;
-
-  border: 3px solid #e5eaf1;
-  border-top-color: var(--primary);
-
-  border-radius: 50%;
-
-  animation: spin 0.75s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+  if (!toast || !messageEl) {
+    return;
   }
-}
 
-.loader-text {
-  margin-top: 10px;
+  messageEl.textContent = message;
 
-  color: var(--text-secondary);
+  toast.classList.add("show");
 
-  font-size: 10px;
-  font-weight: 600;
+  clearTimeout(toastTimer);
+
+  toastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2800);
 }
 
 
 /* =========================================================
-   SKELETON
+   LOADER
    ========================================================= */
 
-.skeleton {
-  position: relative;
-
-  overflow: hidden;
-
-  background: #edf1f5;
-
-  border-radius: 8px;
+function showLoader() {
+  $("globalLoader")?.classList.remove("hidden");
 }
 
-.skeleton::after {
-  content: "";
 
-  position: absolute;
-  inset: 0;
+function hideLoader() {
+  $("globalLoader")?.classList.add("hidden");
+}
 
-  transform: translateX(-100%);
 
-  background:
-    linear-gradient(
-      90deg,
-      transparent,
-      rgba(255,255,255,0.65),
-      transparent
+/* =========================================================
+   API
+   ========================================================= */
+
+async function apiRequest(
+  endpoint,
+  options = {}
+) {
+  const headers = {
+    "Content-Type": "application/json",
+    ...(options.headers || {})
+  };
+
+
+  /*
+   * IMPORTANT:
+   * Backend validates RAW Telegram initData.
+   * Never use initDataUnsafe for authentication.
+   */
+
+  if (tg?.initData) {
+    headers["X-Telegram-Init-Data"] = tg.initData;
+  }
+
+
+  const response = await fetch(
+    `${API_BASE}${endpoint}`,
+    {
+      ...options,
+      headers
+    }
+  );
+
+
+  let data = null;
+
+  try {
+    data = await response.json();
+  } catch (_) {
+    data = null;
+  }
+
+
+  if (!response.ok) {
+
+    const message =
+      data?.detail ||
+      data?.message ||
+      `Request failed (${response.status})`;
+
+    throw new Error(message);
+  }
+
+
+  return data;
+}
+
+
+/* =========================================================
+   AUTH
+   ========================================================= */
+
+async function authenticate() {
+
+  if (!tg?.initData) {
+
+    /*
+     * Development fallback.
+     * Real Telegram production authentication requires
+     * Telegram Mini App initData.
+     */
+
+    showToast(
+      "Telegram Mini App থেকে অ্যাপটি খুলুন।"
     );
 
-  animation: skeletonMove 1.2s infinite;
-}
+    return false;
+  }
 
-@keyframes skeletonMove {
-  100% {
-    transform: translateX(100%);
+
+  try {
+
+    const data = await apiRequest(
+      "/auth",
+      {
+        method: "POST"
+      }
+    );
+
+
+    if (data?.user) {
+      state.user = data.user;
+    }
+
+
+    if (data?.wallet) {
+      state.wallet = {
+        ...state.wallet,
+        ...data.wallet
+      };
+    }
+
+
+    updateUserUI();
+    updateWalletUI();
+
+    return true;
+
+  } catch (error) {
+
+    console.error("Authentication error:", error);
+
+    showToast(
+      "Account load করা যাচ্ছে না। আবার চেষ্টা করুন।"
+    );
+
+    return false;
   }
 }
 
 
 /* =========================================================
-   STATUS
+   USER UI
    ========================================================= */
 
-.status {
-  display: inline-flex;
-  align-items: center;
+function updateUserUI() {
 
-  padding: 4px 7px;
+  const user = state.user;
 
-  border-radius: 7px;
+  if (!user) {
+    return;
+  }
 
-  font-size: 9px;
-  font-weight: 750;
-}
 
-.status.pending {
-  background: var(--yellow-soft);
-  color: #9a6700;
-}
+  const name =
+    user.first_name ||
+    user.username ||
+    "User";
 
-.status.paid,
-.status.success {
-  background: var(--green-soft);
-  color: var(--green);
-}
 
-.status.cancelled,
-.status.failed {
-  background: var(--red-soft);
-  color: var(--red);
+  const username =
+    user.username
+      ? `@${user.username}`
+      : "Telegram User";
+
+
+  if ($("userName")) {
+    $("userName").textContent = name;
+  }
+
+
+  if ($("profileName")) {
+    $("profileName").textContent = name;
+  }
+
+
+  if ($("profileUsername")) {
+    $("profileUsername").textContent = username;
+  }
+
+
+  const avatarText = initials(name);
+
+
+  if ($("topAvatarText")) {
+    $("topAvatarText").textContent = avatarText;
+  }
+
+
+  if ($("profileAvatar")) {
+    $("profileAvatar").textContent = avatarText;
+  }
+
+
+  updateReferralLink();
 }
 
 
 /* =========================================================
-   UTILITIES
+   WALLET UI
    ========================================================= */
 
-.hidden {
-  display: none !important;
-}
+function updateWalletUI() {
 
-.text-center {
-  text-align: center;
-}
+  const wallet = state.wallet || {};
 
-.mt-10 {
-  margin-top: 10px;
-}
+  const qexc =
+    Number(wallet.balance_qexc || 0);
 
-.mt-15 {
-  margin-top: 15px;
-}
 
-.mt-20 {
-  margin-top: 20px;
+  const bdt =
+    formatBDTFromQEXC(qexc);
+
+
+  if ($("balanceQEXC")) {
+    $("balanceQEXC").textContent =
+      formatQEXC(qexc);
+  }
+
+
+  if ($("balanceBDT")) {
+    $("balanceBDT").textContent = bdt;
+  }
+
+
+  if ($("walletQEXC")) {
+    $("walletQEXC").textContent =
+      `${formatQEXC(qexc)} QEXC`;
+  }
+
+
+  if ($("walletBalance")) {
+    $("walletBalance").textContent =
+      `৳${bdt}`;
+  }
+
+
+  if ($("withdrawAvailable")) {
+    $("withdrawAvailable").textContent =
+      `৳${bdt}`;
+  }
+
+
+  if ($("totalEarned")) {
+    $("totalEarned").textContent =
+      formatQEXC(wallet.total_earned || 0);
+  }
+
+
+  if ($("totalWithdrawn")) {
+    $("totalWithdrawn").textContent =
+      formatQEXC(wallet.total_withdrawn || 0);
+  }
+
+
+  if ($("profileEarned")) {
+    $("profileEarned").textContent =
+      formatQEXC(wallet.total_earned || 0);
+  }
+
+
+  if ($("profileWithdrawn")) {
+    $("profileWithdrawn").textContent =
+      formatQEXC(wallet.total_withdrawn || 0);
+  }
 }
 
 
 /* =========================================================
-   RESPONSIVE
+   WALLET LOAD
    ========================================================= */
 
-@media (min-width: 600px) {
+async function loadWallet() {
 
-  main {
-    padding-left: 22px;
-    padding-right: 22px;
-  }
+  try {
 
-  .bottom-nav {
-    left: 50%;
-    right: auto;
+    const data =
+      await apiRequest("/wallet");
 
-    width: min(560px, 100%);
 
-    transform: translateX(-50%);
+    if (data?.wallet) {
 
-    border: 1px solid var(--border);
-    border-bottom: 0;
+      state.wallet = {
+        ...state.wallet,
+        ...data.wallet
+      };
 
-    border-radius: 18px 18px 0 0;
-  }
+      updateWalletUI();
+    }
 
-  .modal {
-    align-items: center;
-    padding: 20px;
-  }
+  } catch (error) {
 
-  .modal-content {
-    border-radius: 20px;
-  }
-
-  .announcement-modal .modal-content {
-    border-radius: 20px;
+    console.error(
+      "Wallet load failed:",
+      error
+    );
   }
 }
 
 
 /* =========================================================
-   SMALL DEVICES
+   TRANSACTIONS
    ========================================================= */
 
-@media (max-width: 340px) {
+async function loadTransactions() {
 
-  main {
-    padding-left: 12px;
-    padding-right: 12px;
+  try {
+
+    const data =
+      await apiRequest(
+        "/transactions"
+      );
+
+
+    if (Array.isArray(data)) {
+      state.transactions = data;
+    } else if (
+      Array.isArray(data?.transactions)
+    ) {
+      state.transactions =
+        data.transactions;
+    } else {
+      state.transactions = [];
+    }
+
+
+    renderTransactions();
+
+  } catch (error) {
+
+    console.error(
+      "Transactions load failed:",
+      error
+    );
+
+    state.transactions = [];
+
+    renderTransactions();
+  }
+}
+
+
+function renderTransactions() {
+
+  const lists = [
+    $("recentTransactions"),
+    $("historyList")
+  ];
+
+
+  lists.forEach(container => {
+
+    if (!container) {
+      return;
+    }
+
+
+    const items =
+      state.transactions || [];
+
+
+    if (!items.length) {
+
+      container.innerHTML = `
+        <div class="empty-state compact">
+          <div class="empty-icon">◌</div>
+
+          <div class="empty-title">
+            কোনো transaction নেই
+          </div>
+
+          <div class="empty-description">
+            আপনার earning ও withdrawal এখানে দেখা যাবে।
+          </div>
+        </div>
+      `;
+
+      return;
+    }
+
+
+    const limited =
+      container.id === "recentTransactions"
+        ? items.slice(0, 5)
+        : items;
+
+
+    container.innerHTML =
+      limited.map(tx => {
+
+        const amount =
+          Number(
+            tx.amount_qexc ??
+            tx.qexc ??
+            tx.amount ??
+            0
+          );
+
+
+        const type =
+          String(
+            tx.type ||
+            tx.transaction_type ||
+            "reward"
+          ).toLowerCase();
+
+
+        const negative =
+          type.includes("withdraw") ||
+          type.includes("debit") ||
+          amount < 0;
+
+
+        const sign =
+          negative ? "-" : "+";
+
+
+        const title =
+          tx.title ||
+          tx.description ||
+          (
+            negative
+              ? "Withdrawal"
+              : "Reward"
+          );
+
+
+        return `
+          <div class="transaction">
+
+            <div class="transaction-icon">
+              ${negative ? "↗" : "+"}
+            </div>
+
+            <div class="transaction-info">
+
+              <div class="transaction-title">
+                ${escapeHTML(title)}
+              </div>
+
+              <div class="transaction-date">
+                ${escapeHTML(
+                  formatDate(
+                    tx.created_at ||
+                    tx.createdAt ||
+                    tx.date
+                  )
+                )}
+              </div>
+
+            </div>
+
+            <div class="transaction-amount ${
+              negative
+                ? "negative"
+                : "positive"
+            }">
+              ${sign}${formatQEXC(Math.abs(amount))}
+              QEXC
+            </div>
+
+          </div>
+        `;
+      }).join("");
+  });
+}
+
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+function navigate(page) {
+
+  const validPages = [
+    "home",
+    "earn",
+    "tasks",
+    "leaderboard",
+    "wallet",
+    "profile"
+  ];
+
+
+  if (!validPages.includes(page)) {
+    return;
   }
 
-  .topbar {
-    padding-left: 12px;
-    padding-right: 12px;
+
+  state.currentPage = page;
+
+
+  document
+    .querySelectorAll(".page")
+    .forEach(section => {
+      section.classList.remove("active");
+    });
+
+
+  const target =
+    $(`page-${page}`);
+
+
+  if (target) {
+    target.classList.add("active");
   }
 
-  .balance-card {
-    padding: 16px;
+
+  document
+    .querySelectorAll(".nav-item")
+    .forEach(item => {
+
+      item.classList.toggle(
+        "active",
+        item.dataset.page === page
+      );
+
+    });
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+
+  vibrate();
+
+
+  if (page === "wallet") {
+    loadWallet();
+    loadTransactions();
   }
 
-  .balance-value {
-    font-size: 29px;
+
+  if (page === "tasks") {
+    loadTasks();
   }
 
-  .brand-name {
-    font-size: 15px;
+
+  if (page === "leaderboard") {
+    loadLeaderboard(
+      state.leaderboardPeriod
+    );
   }
 
-  .brand-subtitle {
-    font-size: 9px;
+
+  if (page === "profile") {
+    updateUserUI();
+    updateWalletUI();
+  }
+}
+
+
+/* =========================================================
+   DAILY BONUS
+   ========================================================= */
+
+let dailyTimer = null;
+
+
+async function loadDailyStatus() {
+
+  /*
+   * Backend may return daily status from /rewards/daily
+   * only after claim. Therefore we also support local
+   * countdown fallback.
+   */
+
+
+  try {
+
+    const stored =
+      localStorage.getItem(
+        "qexus_daily_next_claim"
+      );
+
+
+    if (stored) {
+
+      const timestamp =
+        Number(stored);
+
+
+      if (
+        Number.isFinite(timestamp) &&
+        timestamp > Date.now()
+      ) {
+
+        state.daily.nextClaimAt =
+          timestamp;
+
+        startDailyCountdown();
+
+        return;
+      }
+
+
+      localStorage.removeItem(
+        "qexus_daily_next_claim"
+      );
+    }
+
+  } catch (_) {}
+
+
+  state.daily.claimed = false;
+
+  renderDailyAvailable();
+}
+
+
+async function claimDailyBonus() {
+
+  const button =
+    $("dailyBonusButton");
+
+
+  if (button?.disabled) {
+    return;
   }
 
-  .quick-item {
-    padding: 9px;
+
+  if (
+    state.daily.nextClaimAt &&
+    Date.now() <
+    state.daily.nextClaimAt
+  ) {
+
+    showToast(
+      "পরবর্তী Daily Bonus-এর জন্য অপেক্ষা করুন।"
+    );
+
+    return;
   }
 
-  .quick-icon {
-    width: 34px;
-    height: 34px;
-    flex-basis: 34px;
+
+  if (button) {
+    button.disabled = true;
+    button.textContent =
+      "Processing...";
   }
+
+
+  try {
+
+    const data =
+      await apiRequest(
+        "/rewards/daily",
+        {
+          method: "POST"
+        }
+      );
+
+
+    if (data?.wallet) {
+
+      state.wallet = {
+        ...state.wallet,
+        ...data.wallet
+      };
+    }
+
+
+    if (data?.next_claim_at) {
+
+      const timestamp =
+        new Date(
+          data.next_claim_at
+        ).getTime();
+
+
+      if (
+        Number.isFinite(timestamp)
+      ) {
+
+        state.daily.nextClaimAt =
+          timestamp;
+
+
+        localStorage.setItem(
+          "qexus_daily_next_claim",
+          String(timestamp)
+        );
+      }
+
+    } else {
+
+      /*
+       * Safe fallback:
+       * 24 hours from now.
+       */
+
+      const next =
+        Date.now() +
+        24 * 60 * 60 * 1000;
+
+
+      state.daily.nextClaimAt =
+        next;
+
+
+      localStorage.setItem(
+        "qexus_daily_next_claim",
+        String(next)
+      );
+    }
+
+
+    state.daily.claimed = true;
+
+
+    updateWalletUI();
+    await loadTransactions();
+
+
+    startDailyCountdown();
+
+
+    showToast(
+      "Daily Bonus সফলভাবে যোগ হয়েছে।"
+    );
+
+
+    vibrate();
+
+  } catch (error) {
+
+    console.error(
+      "Daily bonus error:",
+      error
+    );
+
+
+    showToast(
+      error.message ||
+      "আজকের bonus নেওয়া যায়নি।"
+    );
+
+  } finally {
+
+    if (button) {
+      button.disabled = false;
+    }
+  }
+}
+
+
+function renderDailyAvailable() {
+
+  const countdown =
+    $("dailyCountdown");
+
+
+  const button =
+    $("dailyBonusButton");
+
+
+  const homeStatus =
+    $("homeDailyStatus");
+
+
+  if (countdown) {
+    countdown.textContent =
+      "Available";
+  }
+
+
+  if (button) {
+    button.disabled = false;
+    button.textContent =
+      "Daily Bonus নিন";
+  }
+
+
+  if (homeStatus) {
+    homeStatus.textContent =
+      "আজকের bonus সংগ্রহ করুন";
+  }
+}
+
+
+function startDailyCountdown() {
+
+  clearInterval(dailyTimer);
+
+
+  const update = () => {
+
+    const target =
+      Number(state.daily.nextClaimAt);
+
+
+    const remaining =
+      target - Date.now();
+
+
+    if (
+      !Number.isFinite(target) ||
+      remaining <= 0
+    ) {
+
+      clearInterval(dailyTimer);
+
+      state.daily.nextClaimAt = null;
+      state.daily.claimed = false;
+
+
+      try {
+        localStorage.removeItem(
+          "qexus_daily_next_claim"
+        );
+      } catch (_) {}
+
+
+      renderDailyAvailable();
+
+      return;
+    }
+
+
+    const totalSeconds =
+      Math.floor(
+        remaining / 1000
+      );
+
+
+    const hours =
+      Math.floor(
+        totalSeconds / 3600
+      );
+
+
+    const minutes =
+      Math.floor(
+        (totalSeconds % 3600) / 60
+      );
+
+
+    const seconds =
+      totalSeconds % 60;
+
+
+    const text =
+      `${String(hours).padStart(2, "0")}:` +
+      `${String(minutes).padStart(2, "0")}:` +
+      `${String(seconds).padStart(2, "0")}`;
+
+
+    if ($("dailyCountdown")) {
+      $("dailyCountdown").textContent =
+        text;
+    }
+
+
+    if ($("dailyBonusButton")) {
+      $("dailyBonusButton").textContent =
+        `আবার পাওয়া যাবে ${text}`;
+    }
+
+
+    if ($("dailyBonusButton")) {
+      $("dailyBonusButton").disabled =
+        true;
+    }
+
+
+    if ($("homeDailyStatus")) {
+      $("homeDailyStatus").textContent =
+        `পরবর্তী bonus: ${text}`;
+    }
+  };
+
+
+  update();
+
+  dailyTimer =
+    setInterval(update, 1000);
+}
+
+
+/* =========================================================
+   REWARDED AD
+   ========================================================= */
+
+function watchAd() {
+
+  /*
+   * PRODUCTION SAFETY:
+   *
+   * No real rewarded-ad provider is connected yet.
+   * Therefore this function MUST NOT call the old
+   * /rewards/ad endpoint.
+   *
+   * No ad = No reward.
+   */
+
+
+  const status =
+    $("adStatus");
+
+
+  if (status) {
+    status.textContent =
+      "Verified rewarded ad provider এখনো সংযুক্ত হয়নি।";
+  }
+
+
+  showToast(
+    "Rewarded Ad এখনো available নয়।"
+  );
+}
+
+
+/* =========================================================
+   TASKS
+   ========================================================= */
+
+async function loadTasks() {
+
+  const container =
+    $("taskList");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  try {
+
+    const data =
+      await apiRequest("/tasks");
+
+
+    if (Array.isArray(data)) {
+      state.tasks = data;
+    } else if (
+      Array.isArray(data?.tasks)
+    ) {
+      state.tasks = data.tasks;
+    } else {
+      state.tasks = [];
+    }
+
+
+    renderTasks();
+
+  } catch (error) {
+
+    console.error(
+      "Tasks error:",
+      error
+    );
+
+
+    state.tasks = [];
+
+
+    container.innerHTML = `
+      <div class="empty-state">
+
+        <div class="empty-icon">
+          !
+        </div>
+
+        <div class="empty-title">
+          Tasks unavailable
+        </div>
+
+        <div class="empty-description">
+          এখন কোনো task পাওয়া যাচ্ছে না।
+        </div>
+
+      </div>
+    `;
+  }
+}
+
+
+function renderTasks() {
+
+  const container =
+    $("taskList");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  const tasks =
+    state.tasks || [];
+
+
+  if ($("taskCount")) {
+    $("taskCount").textContent =
+      tasks.length;
+  }
+
+
+  if (!tasks.length) {
+
+    container.innerHTML = `
+      <div class="empty-state">
+
+        <div class="empty-icon">
+          ✓
+        </div>
+
+        <div class="empty-title">
+          কোনো Task নেই
+        </div>
+
+        <div class="empty-description">
+          নতুন task available হলে এখানে দেখা যাবে।
+        </div>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  container.innerHTML =
+    tasks.map(task => {
+
+      const id =
+        task.id ??
+        task.task_id;
+
+
+      const title =
+        task.title ||
+        task.name ||
+        "Task";
+
+
+      const description =
+        task.description ||
+        task.subtitle ||
+        "Complete this task";
+
+
+      const reward =
+        Number(
+          task.reward_qexc ??
+          task.reward ??
+          0
+        );
+
+
+      const completed =
+        Boolean(
+          task.completed ||
+          task.is_completed
+        );
+
+
+      return `
+        <div class="task-card">
+
+          <div class="task-icon">
+            ✓
+          </div>
+
+          <div class="task-info">
+
+            <div class="task-title">
+              ${escapeHTML(title)}
+            </div>
+
+            <div class="task-meta">
+              ${escapeHTML(description)}
+            </div>
+
+          </div>
+
+          <div class="task-reward">
+            +${formatQEXC(reward)}
+          </div>
+
+          <button
+            type="button"
+            class="secondary-btn"
+            style="width:auto;min-width:78px;margin:0;padding:0 9px;"
+            onclick="completeTask('${escapeHTML(id)}')"
+            ${completed ? "disabled" : ""}
+          >
+            ${completed ? "Done" : "Start"}
+          </button>
+
+        </div>
+      `;
+
+    }).join("");
+}
+
+
+async function completeTask(taskId) {
+
+  if (!taskId) {
+    return;
+  }
+
+
+  try {
+
+    const data =
+      await apiRequest(
+        `/tasks/${encodeURIComponent(taskId)}/complete`,
+        {
+          method: "POST"
+        }
+      );
+
+
+    if (data?.wallet) {
+
+      state.wallet = {
+        ...state.wallet,
+        ...data.wallet
+      };
+
+      updateWalletUI();
+    }
+
+
+    showToast(
+      "Task completed। Reward update হয়েছে।"
+    );
+
+
+    await loadTasks();
+    await loadTransactions();
+
+  } catch (error) {
+
+    console.error(
+      "Task completion error:",
+      error
+    );
+
+
+    showToast(
+      error.message ||
+      "Task complete করা যায়নি।"
+    );
+  }
+}
+
+
+/* =========================================================
+   LEADERBOARD
+   ========================================================= */
+
+async function loadLeaderboard(
+  period = "all"
+) {
+
+  state.leaderboardPeriod =
+    period;
+
+
+  document
+    .querySelectorAll(".leaderboard-tab")
+    .forEach(tab => {
+
+      tab.classList.toggle(
+        "active",
+        tab.dataset.period === period
+      );
+
+    });
+
+
+  const list =
+    $("leaderboardList");
+
+
+  const top =
+    $("leaderboardTop");
+
+
+  if (!list) {
+    return;
+  }
+
+
+  list.innerHTML = `
+    <div class="leaderboard-loading">
+      Leaderboard লোড হচ্ছে...
+    </div>
+  `;
+
+
+  try {
+
+    const data =
+      await apiRequest(
+        `/leaderboard?period=${encodeURIComponent(period)}`
+      );
+
+
+    const users =
+      Array.isArray(data)
+        ? data
+        : (
+          Array.isArray(data?.leaderboard)
+            ? data.leaderboard
+            : []
+        );
+
+
+    state.leaderboard =
+      users;
+
+
+    renderLeaderboard(users);
+
+  } catch (error) {
+
+    console.error(
+      "Leaderboard error:",
+      error
+    );
+
+
+    if (top) {
+      top.innerHTML = "";
+    }
+
+
+    list.innerHTML = `
+      <div class="empty-state">
+
+        <div class="empty-icon">
+          ★
+        </div>
+
+        <div class="empty-title">
+          Leaderboard unavailable
+        </div>
+
+        <div class="empty-description">
+          Leaderboard API এখনো configured নয়।
+        </div>
+
+      </div>
+    `;
+
+
+    if ($("myRankValue")) {
+      $("myRankValue").textContent =
+        "—";
+    }
+  }
+}
+
+
+function renderLeaderboard(users) {
+
+  const top =
+    $("leaderboardTop");
+
+
+  const list =
+    $("leaderboardList");
+
+
+  if (!top || !list) {
+    return;
+  }
+
+
+  if (!users.length) {
+
+    top.innerHTML = "";
+
+    list.innerHTML = `
+      <div class="empty-state">
+
+        <div class="empty-icon">
+          ★
+        </div>
+
+        <div class="empty-title">
+          এখনো কোনো ranking নেই
+        </div>
+
+        <div class="empty-description">
+          Earn শুরু হলে leaderboard তৈরি হবে।
+        </div>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  const firstThree =
+    users.slice(0, 3);
+
+
+  top.innerHTML =
+    firstThree.map((user, index) => {
+
+      const name =
+        user.first_name ||
+        user.username ||
+        user.name ||
+        "User";
+
+
+      const score =
+        Number(
+          user.total_earned ??
+          user.earned ??
+          user.score ??
+          user.balance_qexc ??
+          0
+        );
+
+
+      return `
+        <div class="podium-card">
+
+          <div class="podium-rank">
+            #${index + 1}
+          </div>
+
+          <div class="podium-name">
+            ${escapeHTML(name)}
+          </div>
+
+          <div class="podium-score">
+            ${formatQEXC(score)} QEXC
+          </div>
+
+        </div>
+      `;
+
+    }).join("");
+
+
+  list.innerHTML =
+    users.slice(3).map((user, index) => {
+
+      const rank =
+        index + 4;
+
+
+      const name =
+        user.first_name ||
+        user.username ||
+        user.name ||
+        "User";
+
+
+      const score =
+        Number(
+          user.total_earned ??
+          user.earned ??
+          user.score ??
+          0
+        );
+
+
+      return `
+        <div class="leaderboard-row">
+
+          <div class="leaderboard-rank">
+            #${rank}
+          </div>
+
+          <div class="leaderboard-avatar">
+            ${escapeHTML(initials(name))}
+          </div>
+
+          <div class="leaderboard-user">
+
+            <div class="leaderboard-name">
+              ${escapeHTML(name)}
+            </div>
+
+          </div>
+
+          <div class="leaderboard-score">
+            ${formatQEXC(score)} QEXC
+          </div>
+
+        </div>
+      `;
+
+    }).join("");
+
+
+  /*
+   * Find current user's rank.
+   */
+
+  const myId =
+    String(
+      state.user?.telegram_id ??
+      state.user?.id ??
+      ""
+    );
+
+
+  let myIndex = -1;
+
+
+  users.forEach((user, index) => {
+
+    const id =
+      String(
+        user.telegram_id ??
+        user.user_id ??
+        user.id ??
+        ""
+      );
+
+
+    if (
+      myId &&
+      id &&
+      id === myId
+    ) {
+      myIndex = index;
+    }
+  });
+
+
+  if ($("myRankValue")) {
+
+    $("myRankValue").textContent =
+      myIndex >= 0
+        ? `#${myIndex + 1}`
+        : "—";
+  }
+}
+
+
+/* =========================================================
+   WITHDRAWAL
+   ========================================================= */
+
+function openWithdrawModal() {
+
+  const modal =
+    $("withdrawModal");
+
+
+  if (!modal) {
+    return;
+  }
+
+
+  updateWalletUI();
+
+
+  modal.classList.add("show");
+
+  document.body.style.overflow =
+    "hidden";
+
+
+  if (!$("[data-method].active")) {
+
+    state.withdrawMethod =
+      null;
+
+  }
+}
+
+
+function closeWithdrawModal() {
+
+  const modal =
+    $("withdrawModal");
+
+
+  if (!modal) {
+    return;
+  }
+
+
+  modal.classList.remove("show");
+
+  document.body.style.overflow =
+    "";
+}
+
+
+function selectWithdrawMethod(method) {
+
+  const allowed = [
+    "bKash",
+    "Nagad"
+  ];
+
+
+  if (!allowed.includes(method)) {
+    return;
+  }
+
+
+  state.withdrawMethod =
+    method;
+
+
+  document
+    .querySelectorAll(
+      ".method-btn"
+    )
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.method === method
+      );
+
+    });
+
+
+  vibrate();
+}
+
+
+async function submitWithdrawal() {
+
+  const amountInput =
+    $("withdrawAmount");
+
+
+  const numberInput =
+    $("withdrawNumber");
+
+
+  const submitButton =
+    $("withdrawSubmit");
+
+
+  const amount =
+    Number(
+      amountInput?.value || 0
+    );
+
+
+  const accountNumber =
+    String(
+      numberInput?.value || ""
+    ).trim();
+
+
+  if (
+    !Number.isFinite(amount) ||
+    amount < MIN_WITHDRAW_BDT
+  ) {
+
+    showToast(
+      `Minimum withdrawal ৳${MIN_WITHDRAW_BDT}`
+    );
+
+    return;
+  }
+
+
+  if (
+    !state.withdrawMethod
+  ) {
+
+    showToast(
+      "bKash অথবা Nagad নির্বাচন করুন।"
+    );
+
+    return;
+  }
+
+
+  if (
+    !/^01\d{9}$/.test(
+      accountNumber
+    )
+  ) {
+
+    showToast(
+      "সঠিক ১১ সংখ্যার mobile number দিন।"
+    );
+
+    return;
+  }
+
+
+  const availableBDT =
+    Number(
+      state.wallet.balance_qexc || 0
+    ) * QEXC_TO_BDT;
+
+
+  if (amount > availableBDT) {
+
+    showToast(
+      "আপনার balance যথেষ্ট নয়।"
+    );
+
+    return;
+  }
+
+
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent =
+      "Submitting...";
+  }
+
+
+  try {
+
+    const data =
+      await apiRequest(
+        "/withdrawals",
+        {
+          method: "POST",
+
+          body: JSON.stringify({
+            amount_bdt: amount,
+            method: state.withdrawMethod,
+            account_number:
+              accountNumber
+          })
+        }
+      );
+
+
+    if (data?.wallet) {
+
+      state.wallet = {
+        ...state.wallet,
+        ...data.wallet
+      };
+    }
+
+
+    updateWalletUI();
+
+    await loadTransactions();
+
+
+    showToast(
+      "Withdrawal request submitted।"
+    );
+
+
+    if (amountInput) {
+      amountInput.value = "";
+    }
+
+
+    if (numberInput) {
+      numberInput.value = "";
+    }
+
+
+    closeWithdrawModal();
+
+
+  } catch (error) {
+
+    console.error(
+      "Withdrawal error:",
+      error
+    );
+
+
+    showToast(
+      error.message ||
+      "Withdrawal request করা যায়নি।"
+    );
+
+  } finally {
+
+    if (submitButton) {
+
+      submitButton.disabled =
+        false;
+
+      submitButton.textContent =
+        "Request Withdrawal";
+    }
+  }
+}
+
+
+/* =========================================================
+   REFERRAL
+   ========================================================= */
+
+function updateReferralLink() {
+
+  const input =
+    $("referralLink");
+
+
+  if (!input) {
+    return;
+  }
+
+
+  const userId =
+    state.user?.telegram_id ??
+    state.user?.id;
+
+
+  if (!userId) {
+    return;
+  }
+
+
+  const link =
+    `https://t.me/${BOT_USERNAME}?start=ref_${userId}`;
+
+
+  input.value = link;
+}
+
+
+async function copyReferral() {
+
+  const input =
+    $("referralLink");
+
+
+  if (!input?.value) {
+
+    showToast(
+      "Referral link unavailable।"
+    );
+
+    return;
+  }
+
+
+  try {
+
+    await navigator.clipboard.writeText(
+      input.value
+    );
+
+
+    showToast(
+      "Referral link copied।"
+    );
+
+  } catch (_) {
+
+    input.select();
+
+    document.execCommand(
+      "copy"
+    );
+
+
+    showToast(
+      "Referral link copied।"
+    );
+  }
+}
+
+
+function shareReferral() {
+
+  const input =
+    $("referralLink");
+
+
+  if (!input?.value) {
+    return;
+  }
+
+
+  const text =
+    "QEXUS-এ join করুন এবং rewards earn করুন।";
+
+
+  const shareUrl =
+    `https://t.me/share/url?url=${encodeURIComponent(
+      input.value
+    )}&text=${encodeURIComponent(
+      text
+    )}`;
+
+
+  if (tg?.openTelegramLink) {
+
+    tg.openTelegramLink(
+      shareUrl
+    );
+
+  } else {
+
+    window.open(
+      shareUrl,
+      "_blank"
+    );
+  }
+}
+
+
+/* =========================================================
+   OFFICIAL CHANNEL
+   ========================================================= */
+
+function openOfficialChannel() {
+
+  try {
+
+    if (tg?.openTelegramLink) {
+
+      tg.openTelegramLink(
+        OFFICIAL_CHANNEL_URL
+      );
+
+    } else {
+
+      window.open(
+        OFFICIAL_CHANNEL_URL,
+        "_blank"
+      );
+    }
+
+  } catch (error) {
+
+    window.open(
+      OFFICIAL_CHANNEL_URL,
+      "_blank"
+    );
+  }
+}
+
+
+function showAnnouncement() {
+
+  const modal =
+    $("announcementModal");
+
+
+  if (!modal) {
+    return;
+  }
+
+
+  modal.classList.add("show");
+
+  document.body.style.overflow =
+    "hidden";
+}
+
+
+function closeAnnouncement() {
+
+  const modal =
+    $("announcementModal");
+
+
+  if (!modal) {
+    return;
+  }
+
+
+  modal.classList.remove("show");
+
+  document.body.style.overflow =
+    "";
+}
+
+
+/* =========================================================
+   FIRST VISIT POPUP
+   ========================================================= */
+
+function checkFirstVisit() {
+
+  try {
+
+    const key =
+      "qexus_announcement_seen";
+
+
+    const seen =
+      localStorage.getItem(key);
+
+
+    if (!seen) {
+
+      setTimeout(() => {
+
+        showAnnouncement();
+
+        localStorage.setItem(
+          key,
+          "1"
+        );
+
+      }, 1000);
+    }
+
+  } catch (_) {}
+}
+
+
+/* =========================================================
+   NOTIFICATIONS
+   ========================================================= */
+
+function showNotifications() {
+
+  const modal =
+    $("notificationModal");
+
+
+  if (!modal) {
+    return;
+  }
+
+
+  renderNotifications();
+
+
+  modal.classList.add("show");
+
+  document.body.style.overflow =
+    "hidden";
+}
+
+
+function closeNotifications() {
+
+  const modal =
+    $("notificationModal");
+
+
+  if (!modal) {
+    return;
+  }
+
+
+  modal.classList.remove("show");
+
+  document.body.style.overflow =
+    "";
+}
+
+
+function renderNotifications() {
+
+  const list =
+    $("notificationList");
+
+
+  if (!list) {
+    return;
+  }
+
+
+  const notifications =
+    state.notifications || [];
+
+
+  if (!notifications.length) {
+
+    list.innerHTML = `
+      <div class="empty-state compact">
+
+        <div class="empty-icon">
+          ♢
+        </div>
+
+        <div class="empty-title">
+          কোনো notification নেই
+        </div>
+
+        <div class="empty-description">
+          নতুন notification এলে এখানে দেখা যাবে।
+        </div>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  list.innerHTML =
+    notifications.map(item => {
+
+      return `
+        <div class="notification-item">
+
+          <div class="notification-title">
+            ${escapeHTML(
+              item.title || "QEXUS"
+            )}
+          </div>
+
+          <div class="notification-description">
+            ${escapeHTML(
+              item.description ||
+              item.message ||
+              ""
+            )}
+          </div>
+
+          <div class="notification-date">
+            ${escapeHTML(
+              formatDate(
+                item.created_at ||
+                item.date
+              )
+            )}
+          </div>
+
+        </div>
+      `;
+
+    }).join("");
+}
+
+
+/* =========================================================
+   HELP / ABOUT
+   ========================================================= */
+
+function showHelp() {
+
+  const modal =
+    $("infoModal");
+
+
+  if (!modal) {
+    return;
+  }
+
+
+  if ($("infoModalTitle")) {
+    $("infoModalTitle").textContent =
+      "Help & Support";
+  }
+
+
+  if ($("infoModalBody")) {
+
+    $("infoModalBody").innerHTML = `
+      <h3>QEXUS কী?</h3>
+
+      <p>
+        QEXUS একটি rewards platform যেখানে
+        বিভিন্ন eligible activity complete করে
+        QEXC reward পাওয়া যায়।
+      </p>
+
+      <h3>QEXC কী?</h3>
+
+      <p>
+        QEXC হলো QEXUS-এর internal reward point।
+        এটি cryptocurrency বা investment asset নয়।
+      </p>
+
+      <h3>Withdrawal</h3>
+
+      <p>
+        Minimum withdrawal ৳100।
+        bKash অথবা Nagad account দিয়ে request করা যায়।
+        Request manual review-এর মাধ্যমে process হয়।
+      </p>
+
+      <h3>সমস্যা হলে</h3>
+
+      <p>
+        আপনার Telegram username এবং সমস্যার
+        screenshot সহ official support-এর মাধ্যমে
+        যোগাযোগ করুন।
+      </p>
+    `;
+  }
+
+
+  modal.classList.add("show");
+
+  document.body.style.overflow =
+    "hidden";
+}
+
+
+function showAbout() {
+
+  const modal =
+    $("infoModal");
+
+
+  if (!modal) {
+    return;
+  }
+
+
+  if ($("infoModalTitle")) {
+    $("infoModalTitle").textContent =
+      "About QEXUS";
+  }
+
+
+  if ($("infoModalBody")) {
+
+    $("infoModalBody").innerHTML = `
+      <h3>QEXUS</h3>
+
+      <p>
+        QEXUS একটি lightweight Telegram Mini App
+        rewards experience।
+      </p>
+
+      <h3>Reward Conversion</h3>
+
+      <p>
+        1,000 QEXC = ৳100
+      </p>
+
+      <h3>Important</h3>
+
+      <p>
+        QEXC শুধুমাত্র QEXUS-এর internal reward
+        point। এটি কোনো cryptocurrency,
+        security বা investment product নয়।
+      </p>
+
+      <p>
+        Rewards শুধুমাত্র verified activity-এর
+        মাধ্যমে প্রদান করা উচিত।
+      </p>
+    `;
+  }
+
+
+  modal.classList.add("show");
+
+  document.body.style.overflow =
+    "hidden";
+}
+
+
+function closeInfoModal() {
+
+  const modals = [
+    $("infoModal"),
+    $("policyModal")
+  ];
+
+
+  modals.forEach(modal => {
+
+    if (modal) {
+      modal.classList.remove("show");
+    }
+
+  });
+
+
+  document.body.style.overflow =
+    "";
+}
+
+
+/* =========================================================
+   POLICY
+   ========================================================= */
+
+function showPolicy(type) {
+
+  const modal =
+    $("policyModal");
+
+
+  if (!modal) {
+    return;
+  }
+
+
+  const title =
+    $("policyTitle");
+
+
+  const body =
+    $("policyBody");
+
+
+  if (!title || !body) {
+    return;
+  }
+
+
+  if (type === "privacy") {
+
+    title.textContent =
+      "Privacy Policy";
+
+
+    body.innerHTML = `
+      <h3>Information</h3>
+
+      <p>
+        QEXUS account ব্যবহারের জন্য প্রয়োজনীয়
+        Telegram user information backend-এ
+        process হতে পারে।
+      </p>
+
+      <h3>Security</h3>
+
+      <p>
+        Authentication-এর ক্ষেত্রে Telegram
+        Mini App initData server-side validation
+        করা উচিত।
+      </p>
+
+      <h3>Payment information</h3>
+
+      <p>
+        Withdrawal request-এর জন্য দেওয়া payment
+        account information শুধুমাত্র request
+        processing-এর প্রয়োজন অনুযায়ী ব্যবহার করা হবে।
+      </p>
+
+      <h3>Fraud Prevention</h3>
+
+      <p>
+        Abuse, duplicate rewards এবং fraudulent
+        activity detect করার জন্য প্রয়োজনীয়
+        technical information process হতে পারে।
+      </p>
+    `;
+
+  } else {
+
+    title.textContent =
+      "Terms & Conditions";
+
+
+    body.innerHTML = `
+      <h3>1. Account</h3>
+
+      <p>
+        QEXUS ব্যবহার করার সময় সঠিক ও বৈধ account
+        ব্যবহার করতে হবে।
+      </p>
+
+      <h3>2. Rewards</h3>
+
+      <p>
+        Reward শুধুমাত্র verified এবং eligible
+        activity-এর জন্য প্রদান করা হবে।
+      </p>
+
+      <h3>3. Fraud</h3>
+
+      <p>
+        Bot abuse, fake activity, multiple-account
+        abuse বা reward manipulation নিষিদ্ধ।
+      </p>
+
+      <h3>4. Withdrawal</h3>
+
+      <p>
+        Withdrawal request manual review-এর
+        মাধ্যমে approve বা reject হতে পারে।
+      </p>
+
+      <h3>5. Changes</h3>
+
+      <p>
+        Reward rates, task availability এবং
+        platform rules প্রয়োজন অনুযায়ী পরিবর্তন
+        হতে পারে।
+      </p>
+    `;
+  }
+
+
+  modal.classList.add("show");
+
+  document.body.style.overflow =
+    "hidden";
+}
+
+
+/* =========================================================
+   REFRESH
+   ========================================================= */
+
+async function refreshApp() {
+
+  try {
+
+    await loadWallet();
+
+    await loadTransactions();
+
+    await loadTasks();
+
+    await loadDailyStatus();
+
+  } catch (error) {
+
+    console.error(
+      "Refresh error:",
+      error
+    );
+  }
+}
+
+
+/* =========================================================
+   NOTIFICATION BUTTON
+   ========================================================= */
+
+function setupNotificationButton() {
+
+  const button =
+    $("notificationButton");
+
+
+  if (!button) {
+    return;
+  }
+
+
+  button.addEventListener(
+    "click",
+    showNotifications
+  );
+}
+
+
+/* =========================================================
+   MODAL BACKDROP
+   ========================================================= */
+
+function setupModalBackdrop() {
+
+  document
+    .querySelectorAll(".modal")
+    .forEach(modal => {
+
+      modal.addEventListener(
+        "click",
+        event => {
+
+          if (
+            event.target === modal
+          ) {
+
+            modal.classList.remove(
+              "show"
+            );
+
+            document.body.style.overflow =
+              "";
+          }
+        }
+      );
+
+    });
+}
+
+
+/* =========================================================
+   TELEGRAM BACK BUTTON
+   ========================================================= */
+
+function setupTelegramBackButton() {
+
+  if (
+    !tg?.BackButton
+  ) {
+    return;
+  }
+
+
+  tg.BackButton.onClick(() => {
+
+    const openModal =
+      document.querySelector(
+        ".modal.show"
+      );
+
+
+    if (openModal) {
+
+      openModal.classList.remove(
+        "show"
+      );
+
+      document.body.style.overflow =
+        "";
+
+      tg.BackButton.hide();
+
+      return;
+    }
+
+
+    if (
+      state.currentPage !==
+      "home"
+    ) {
+
+      navigate("home");
+
+      return;
+    }
+
+
+    tg.close();
+  });
+}
+
+
+/* =========================================================
+   INPUT VALIDATION
+   ========================================================= */
+
+function setupInputs() {
+
+  const numberInput =
+    $("withdrawNumber");
+
+
+  if (numberInput) {
+
+    numberInput.addEventListener(
+      "input",
+      () => {
+
+        numberInput.value =
+          numberInput.value
+            .replace(/\D/g, "")
+            .slice(0, 11);
+      }
+    );
+  }
+
+
+  const amountInput =
+    $("withdrawAmount");
+
+
+  if (amountInput) {
+
+    amountInput.addEventListener(
+      "input",
+      () => {
+
+        if (
+          Number(amountInput.value) < 0
+        ) {
+          amountInput.value = "0";
+        }
+      }
+    );
+  }
+}
+
+
+/* =========================================================
+   CLOSE MODALS ON ESC
+   ========================================================= */
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if (event.key !== "Escape") {
+      return;
+    }
+
+
+    document
+      .querySelectorAll(".modal.show")
+      .forEach(modal => {
+
+        modal.classList.remove(
+          "show"
+        );
+
+      });
+
+
+    document.body.style.overflow =
+      "";
+  }
+);
+
+
+/* =========================================================
+   VISIBILITY REFRESH
+   ========================================================= */
+
+document.addEventListener(
+  "visibilitychange",
+  () => {
+
+    if (
+      document.visibilityState ===
+      "visible"
+    ) {
+
+      loadWallet();
+      loadTransactions();
+    }
+  }
+);
+
+
+/* =========================================================
+   INITIALIZATION
+   ========================================================= */
+
+async function initApp() {
+
+  showLoader();
+
+
+  try {
+
+    setupNotificationButton();
+
+    setupModalBackdrop();
+
+    setupTelegramBackButton();
+
+    setupInputs();
+
+
+    /*
+     * Start with Home.
+     */
+
+    navigate("home");
+
+
+    /*
+     * Authenticate user.
+     */
+
+    await authenticate();
+
+
+    /*
+     * Load application data.
+     */
+
+    await Promise.allSettled([
+      loadWallet(),
+      loadTransactions(),
+      loadTasks(),
+      loadDailyStatus()
+    ]);
+
+
+    /*
+     * First visit announcement.
+     */
+
+    checkFirstVisit();
+
+
+  } catch (error) {
+
+    console.error(
+      "QEXUS initialization error:",
+      error
+    );
+
+    showToast(
+      "QEXUS load করতে সমস্যা হয়েছে।"
+    );
+
+  } finally {
+
+    setTimeout(
+      hideLoader,
+      250
+    );
+  }
+}
+
+
+/* =========================================================
+   GLOBAL FUNCTIONS
+   ========================================================= */
+
+window.navigate =
+  navigate;
+
+window.watchAd =
+  watchAd;
+
+window.claimDailyBonus =
+  claimDailyBonus;
+
+window.openWithdrawModal =
+  openWithdrawModal;
+
+window.closeWithdrawModal =
+  closeWithdrawModal;
+
+window.selectWithdrawMethod =
+  selectWithdrawMethod;
+
+window.submitWithdrawal =
+  submitWithdrawal;
+
+window.copyReferral =
+  copyReferral;
+
+window.shareReferral =
+  shareReferral;
+
+window.completeTask =
+  completeTask;
+
+window.openOfficialChannel =
+  openOfficialChannel;
+
+window.showAnnouncement =
+  showAnnouncement;
+
+window.closeAnnouncement =
+  closeAnnouncement;
+
+window.showNotifications =
+  showNotifications;
+
+window.closeNotifications =
+  closeNotifications;
+
+window.showHelp =
+  showHelp;
+
+window.showAbout =
+  showAbout;
+
+window.closeInfoModal =
+  closeInfoModal;
+
+window.showPolicy =
+  showPolicy;
+
+window.refreshApp =
+  refreshApp;
+
+window.loadLeaderboard =
+  loadLeaderboard;
+
+
+/* =========================================================
+   START
+   ========================================================= */
+
+if (
+  document.readyState ===
+  "loading"
+) {
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    initApp
+  );
+
+} else {
+
+  initApp();
 }
