@@ -5,27 +5,21 @@
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     >
 
-    <meta
-        name="theme-color"
-        content="#f5f7fb"
-    >
+    <meta name="theme-color" content="#f7f9fc">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
 
     <meta
         name="description"
-        content="QEXUS — Earn QEXC and manage your rewards."
+        content="QEXUS — Earn QEXC, complete tasks, invite friends and manage your rewards."
     >
 
     <title>QEXUS</title>
 
-    <!-- =====================================================
-         Fonts
-         Bengali: Noto Sans Bengali
-         English / Numbers: Inter
-         ===================================================== -->
-
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -37,7 +31,7 @@
     <!-- Telegram Mini App -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <!-- Main stylesheet -->
+    <!-- Main CSS -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -45,62 +39,99 @@
 
 <div id="app">
 
-    <!-- =====================================================
+    <!-- =========================================================
          TOP BAR
-         ===================================================== -->
+         ========================================================= -->
 
     <header class="topbar">
 
         <div class="brand">
 
             <div class="brand-logo" aria-hidden="true">
-                <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                >
-                    <path d="M4 7h16"></path>
-                    <path d="M6 4h12"></path>
-                    <path d="M6 10h12"></path>
-                    <path d="M8 13l3 7"></path>
-                    <path d="M16 13l-3 7"></path>
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path
+                        d="M6 4h12l-2 4H8L6 4Z"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linejoin="round"
+                    />
+                    <path
+                        d="M8 8h8l-1.5 5H9.5L8 8Z"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linejoin="round"
+                    />
+                    <path
+                        d="m10 13 1.5 7M14 13l-1.5 7"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                    />
                 </svg>
             </div>
 
             <div>
                 <div class="brand-name">QEXUS</div>
-                <span class="brand-subtitle">
-                    Rewards Platform
-                </span>
+                <div class="brand-subtitle">Rewards Platform</div>
             </div>
 
         </div>
 
-        <button
-            class="avatar"
-            id="topAvatar"
-            type="button"
-            aria-label="Profile"
-            onclick="navigate('profile')"
-        >
-            <span id="topAvatarText">Q</span>
-        </button>
+        <div class="top-actions">
+
+            <button
+                id="notificationButton"
+                class="icon-button"
+                type="button"
+                aria-label="Notifications"
+                onclick="openNotifications()"
+            >
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path
+                        d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                    <path
+                        d="M10 21h4"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                    />
+                </svg>
+
+                <span
+                    id="notificationBadge"
+                    class="notification-badge hidden"
+                >0</span>
+            </button>
+
+            <button
+                id="topAvatar"
+                class="avatar"
+                type="button"
+                aria-label="Profile"
+                onclick="navigate('profile')"
+            >
+                <span id="topAvatarText">Q</span>
+            </button>
+
+        </div>
 
     </header>
 
 
-    <!-- =====================================================
+    <!-- =========================================================
          MAIN
-         ===================================================== -->
+         ========================================================= -->
 
-    <main>
+    <main id="mainContent">
 
-        <!-- =================================================
+        <!-- =====================================================
              HOME
-             ================================================= -->
+             ===================================================== -->
 
         <section
             id="home"
@@ -109,34 +140,57 @@
         >
 
             <div class="page-intro">
-                <div class="page-description">
+
+                <div class="eyebrow">
+                    QEXUS ACCOUNT
+                </div>
+
+                <h1 class="welcome-title">
                     স্বাগতম,
                     <strong id="userName">QEXUS User</strong>
-                </div>
+                </h1>
+
+                <p class="page-description">
+                    আজও সহজ কিছু কাজ করে QEXC সংগ্রহ করুন।
+                </p>
+
             </div>
 
 
-            <!-- Balance -->
+            <!-- Balance Card -->
 
             <div class="balance-card">
 
-                <div class="balance-label">
-                    Available Balance
+                <div class="balance-card-top">
+
+                    <div>
+                        <div class="balance-label">
+                            Available Balance
+                        </div>
+
+                        <div
+                            id="balanceBDT"
+                            class="balance-value"
+                        >
+                            ৳0.00
+                        </div>
+
+                        <div
+                            id="balanceQEXC"
+                            class="balance-qexc"
+                        >
+                            0 QEXC
+                        </div>
+                    </div>
+
+                    <div class="balance-coin">
+                        Q
+                    </div>
+
                 </div>
 
-                <div
-                    class="balance-value"
-                    id="balanceBDT"
-                >
-                    ৳0.00
-                </div>
 
-                <div
-                    class="balance-qexc"
-                    id="balanceQEXC"
-                >
-                    0 QEXC
-                </div>
+                <div class="balance-divider"></div>
 
 
                 <div class="balance-actions">
@@ -146,17 +200,22 @@
                         type="button"
                         onclick="navigate('earn')"
                     >
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <path d="M12 3v18"></path>
-                            <path d="M17 7H9.5a3.5 3.5 0 0 0 0 7H15a3.5 3.5 0 0 1 0 7H7"></path>
-                        </svg>
+                        <span class="action-icon green">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path
+                                    d="M12 3v18"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                    stroke-linecap="round"
+                                />
+                                <path
+                                    d="M17 7H9.5a3.5 3.5 0 0 0 0 7H15a3.5 3.5 0 0 1 0 7H7"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                    stroke-linecap="round"
+                                />
+                            </svg>
+                        </span>
 
                         <span>আয় করুন</span>
                     </button>
@@ -167,18 +226,29 @@
                         type="button"
                         onclick="openWithdrawModal()"
                     >
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <path d="M12 3v12"></path>
-                            <path d="m7 10 5 5 5-5"></path>
-                            <path d="M5 21h14"></path>
-                        </svg>
+                        <span class="action-icon blue">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path
+                                    d="M12 3v12"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                    stroke-linecap="round"
+                                />
+                                <path
+                                    d="m7 10 5 5 5-5"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+                                <path
+                                    d="M5 21h14"
+                                    stroke="currentColor"
+                                    stroke-width="1.8"
+                                    stroke-linecap="round"
+                                />
+                            </svg>
+                        </span>
 
                         <span>উত্তোলন</span>
                     </button>
@@ -191,10 +261,19 @@
             <!-- Quick Actions -->
 
             <div class="section-header">
-                <h2 class="section-title">
-                    দ্রুত কাজ
-                </h2>
+
+                <div>
+                    <div class="section-kicker">
+                        EXPLORE
+                    </div>
+
+                    <h2 class="section-title">
+                        দ্রুত কাজ
+                    </h2>
+                </div>
+
             </div>
+
 
             <div class="quick-grid">
 
@@ -203,26 +282,28 @@
                     type="button"
                     onclick="navigate('earn')"
                 >
-                    <span
-                        class="quick-icon"
-                        style="background:#ecfdf3;color:#16a34a;"
-                    >
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <path d="M12 3v18"></path>
-                            <path d="M17 7H9.5a3.5 3.5 0 0 0 0 7H15a3.5 3.5 0 0 1 0 7H7"></path>
+                    <span class="quick-icon green">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M12 3v18"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
+                            <path
+                                d="M17 7H9.5a3.5 3.5 0 0 0 0 7H15a3.5 3.5 0 0 1 0 7H7"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
                         </svg>
                     </span>
 
                     <span class="quick-label">
                         Earn
                     </span>
+
+                    <span class="quick-arrow">›</span>
                 </button>
 
 
@@ -231,28 +312,74 @@
                     type="button"
                     onclick="navigate('tasks')"
                 >
-                    <span
-                        class="quick-icon"
-                        style="background:#eff6ff;color:#2563eb;"
-                    >
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <rect x="4" y="3" width="16" height="18" rx="2"></rect>
-                            <path d="m8 8 1.5 1.5L12 7"></path>
-                            <path d="M8 13h8"></path>
-                            <path d="M8 17h6"></path>
+                    <span class="quick-icon blue">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <rect
+                                x="4"
+                                y="3"
+                                width="16"
+                                height="18"
+                                rx="2"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            />
+                            <path
+                                d="M8 8h8M8 12h8M8 16h5"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
                         </svg>
                     </span>
 
                     <span class="quick-label">
                         Tasks
                     </span>
+
+                    <span class="quick-arrow">›</span>
+                </button>
+
+
+                <button
+                    class="quick-item"
+                    type="button"
+                    onclick="navigate('leaderboard')"
+                >
+                    <span class="quick-icon purple">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M8 21h8"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
+                            <path
+                                d="M12 17V5"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
+                            <path
+                                d="m8 9 4-4 4 4"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                            <path
+                                d="M5 9v8M19 9v8"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
+                        </svg>
+                    </span>
+
+                    <span class="quick-label">
+                        Leaderboard
+                    </span>
+
+                    <span class="quick-arrow">›</span>
                 </button>
 
 
@@ -261,57 +388,95 @@
                     type="button"
                     onclick="navigate('wallet')"
                 >
-                    <span
-                        class="quick-icon"
-                        style="background:#f5f3ff;color:#7c3aed;"
-                    >
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <rect x="3" y="6" width="18" height="14" rx="3"></rect>
-                            <path d="M16 12h5"></path>
-                            <circle cx="16" cy="12" r="1"></circle>
-                            <path d="M6 6V4a2 2 0 0 1 2-2h8"></path>
+                    <span class="quick-icon orange">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <rect
+                                x="3"
+                                y="6"
+                                width="18"
+                                height="14"
+                                rx="3"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            />
+                            <path
+                                d="M16 12h5"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
+                            <circle
+                                cx="16"
+                                cy="12"
+                                r="1"
+                                fill="currentColor"
+                            />
                         </svg>
                     </span>
 
                     <span class="quick-label">
                         Wallet
                     </span>
+
+                    <span class="quick-arrow">›</span>
                 </button>
 
+            </div>
 
-                <button
-                    class="quick-item"
-                    type="button"
-                    onclick="navigate('profile')"
-                >
-                    <span
-                        class="quick-icon"
-                        style="background:#fffbeb;color:#d97706;"
-                    >
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
+
+            <!-- Daily Status -->
+
+            <div
+                id="homeDailyCard"
+                class="mini-status-card"
+                onclick="navigate('earn')"
+            >
+
+                <div class="mini-status-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <rect
+                            x="3"
+                            y="4"
+                            width="18"
+                            height="17"
+                            rx="3"
                             stroke="currentColor"
-                            stroke-width="2"
+                            stroke-width="1.8"
+                        />
+                        <path
+                            d="M8 2v4M16 2v4M3 9h18"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                        />
+                        <path
+                            d="m8 14 2 2 5-5"
+                            stroke="currentColor"
+                            stroke-width="1.8"
                             stroke-linecap="round"
                             stroke-linejoin="round"
-                        >
-                            <circle cx="12" cy="8" r="4"></circle>
-                            <path d="M4 21a8 8 0 0 1 16 0"></path>
-                        </svg>
-                    </span>
+                        />
+                    </svg>
+                </div>
 
-                    <span class="quick-label">
-                        Profile
-                    </span>
-                </button>
+                <div class="mini-status-content">
+
+                    <div class="mini-status-title">
+                        Daily Bonus
+                    </div>
+
+                    <div
+                        id="homeDailyStatus"
+                        class="mini-status-text"
+                    >
+                        আজকের bonus সংগ্রহ করুন
+                    </div>
+
+                </div>
+
+                <span class="quick-arrow">
+                    ›
+                </span>
 
             </div>
 
@@ -319,18 +484,27 @@
             <!-- Recent Activity -->
 
             <div class="section-header">
-                <h2 class="section-title">
-                    সাম্প্রতিক কার্যক্রম
-                </h2>
+
+                <div>
+                    <div class="section-kicker">
+                        ACTIVITY
+                    </div>
+
+                    <h2 class="section-title">
+                        সাম্প্রতিক কার্যক্রম
+                    </h2>
+                </div>
 
                 <button
-                    type="button"
                     class="section-link"
+                    type="button"
                     onclick="navigate('wallet')"
                 >
                     সব দেখুন
                 </button>
+
             </div>
+
 
             <div
                 id="recentTransactions"
@@ -340,17 +514,13 @@
                 <div class="empty-state">
 
                     <div class="empty-icon">
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <path d="M4 6h16"></path>
-                            <path d="M4 12h16"></path>
-                            <path d="M4 18h10"></path>
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M4 6h16M4 12h16M4 18h10"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
                         </svg>
                     </div>
 
@@ -369,9 +539,9 @@
         </section>
 
 
-        <!-- =================================================
+        <!-- =====================================================
              EARN
-             ================================================= -->
+             ===================================================== -->
 
         <section
             id="earn"
@@ -380,58 +550,61 @@
         >
 
             <div class="page-heading">
+
+                <div class="eyebrow">
+                    EARN QEXC
+                </div>
+
                 <h1 class="page-title">
                     Earn
                 </h1>
 
                 <p class="page-description">
-                    সহজ কিছু কাজ করে QEXC সংগ্রহ করুন।
+                    verified কাজ সম্পন্ন করে QEXC সংগ্রহ করুন।
                 </p>
+
             </div>
 
 
-            <!-- Rewarded Ad -->
+            <!-- Rewarded Ads -->
 
-            <div class="earn-card">
+            <div class="earn-card featured-earn-card">
 
                 <div class="earn-card-head">
 
-                    <div class="earn-main-icon">
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
+                    <div class="earn-main-icon green">
+                        <svg viewBox="0 0 24 24" fill="none">
                             <rect
                                 x="3"
                                 y="5"
                                 width="18"
                                 height="14"
                                 rx="3"
-                            ></rect>
-
-                            <path d="m10 9 5 3-5 3V9z"></path>
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            />
+                            <path
+                                d="m10 9 5 3-5 3V9Z"
+                                fill="currentColor"
+                            />
                         </svg>
                     </div>
 
-                    <div>
+                    <div class="earn-card-info">
 
                         <div class="earn-card-title">
                             Rewarded Ad
                         </div>
 
                         <div class="earn-card-subtitle">
-                            বিজ্ঞাপন দেখুন এবং reward সংগ্রহ করুন
+                            বিজ্ঞাপন সম্পূর্ণ দেখলে reward পাবেন
                         </div>
 
                     </div>
 
                     <div
-                        class="earn-reward"
                         id="adRewardText"
+                        class="earn-reward"
                     >
                         +3 QEXC
                     </div>
@@ -444,19 +617,33 @@
                     class="ad-container"
                 >
 
-                    <div>
+                    <div class="ad-placeholder-icon">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <rect
+                                x="3"
+                                y="5"
+                                width="18"
+                                height="14"
+                                rx="3"
+                                stroke="currentColor"
+                                stroke-width="1.6"
+                            />
+                            <path
+                                d="m10 9 5 3-5 3V9Z"
+                                fill="currentColor"
+                            />
+                        </svg>
+                    </div>
 
-                        <div class="ad-label">
-                            ADVERTISEMENT
-                        </div>
+                    <div class="ad-label">
+                        REWARDED AD
+                    </div>
 
-                        <div
-                            id="adStatus"
-                            class="empty-description"
-                        >
-                            বিজ্ঞাপন প্রস্তুত হচ্ছে...
-                        </div>
-
+                    <div
+                        id="adStatus"
+                        class="empty-description"
+                    >
+                        বিজ্ঞাপন প্রস্তুত হলে এখানে দেখানো হবে।
                     </div>
 
                 </div>
@@ -480,35 +667,34 @@
 
                 <div class="earn-card-head">
 
-                    <div
-                        class="earn-main-icon"
-                        style="background:#fffbeb;color:#d97706;"
-                    >
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
+                    <div class="earn-main-icon orange">
+                        <svg viewBox="0 0 24 24" fill="none">
                             <rect
                                 x="3"
                                 y="4"
                                 width="18"
                                 height="17"
                                 rx="3"
-                            ></rect>
-
-                            <path d="M8 2v4"></path>
-                            <path d="M16 2v4"></path>
-                            <path d="M3 9h18"></path>
-
-                            <path d="m8 14 2 2 5-5"></path>
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            />
+                            <path
+                                d="M8 2v4M16 2v4M3 9h18"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
+                            <path
+                                d="m8 14 2 2 5-5"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
                         </svg>
                     </div>
 
-                    <div>
+                    <div class="earn-card-info">
 
                         <div class="earn-card-title">
                             Daily Bonus
@@ -521,10 +707,29 @@
                     </div>
 
                     <div
-                        class="earn-reward"
                         id="dailyRewardText"
+                        class="earn-reward"
                     >
                         +10 QEXC
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="dailyCountdownBox"
+                    class="countdown-box"
+                >
+
+                    <div class="countdown-label">
+                        পরবর্তী bonus
+                    </div>
+
+                    <div
+                        id="dailyCountdown"
+                        class="countdown-value"
+                    >
+                        Available Now
                     </div>
 
                 </div>
@@ -542,37 +747,38 @@
             </div>
 
 
-            <!-- Tasks shortcut -->
+            <!-- Tasks -->
 
             <div class="earn-card">
 
                 <div class="earn-card-head">
 
-                    <div
-                        class="earn-main-icon"
-                        style="background:#eff6ff;color:#2563eb;"
-                    >
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <path d="M9 11l3 3L22 4"></path>
-                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    <div class="earn-main-icon blue">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="m9 11 3 3L22 4"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                            <path
+                                d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
                         </svg>
                     </div>
 
-                    <div>
+                    <div class="earn-card-info">
 
                         <div class="earn-card-title">
                             Tasks & Offers
                         </div>
 
                         <div class="earn-card-subtitle">
-                            Available tasks থেকে অতিরিক্ত reward নিন
+                            available কাজ থেকে অতিরিক্ত reward নিন
                         </div>
 
                     </div>
@@ -584,9 +790,73 @@
                     class="secondary-btn"
                     type="button"
                     onclick="navigate('tasks')"
-                    style="width:100%;margin-top:15px;"
                 >
                     Tasks দেখুন
+                    <span>›</span>
+                </button>
+
+            </div>
+
+
+            <!-- Referral -->
+
+            <div class="earn-card">
+
+                <div class="earn-card-head">
+
+                    <div class="earn-main-icon purple">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <circle
+                                cx="9"
+                                cy="8"
+                                r="3"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            />
+                            <circle
+                                cx="17"
+                                cy="9"
+                                r="2.5"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            />
+                            <path
+                                d="M3 20a6 6 0 0 1 12 0"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
+                            <path
+                                d="M15 14a5 5 0 0 1 6 6"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
+                        </svg>
+                    </div>
+
+                    <div class="earn-card-info">
+
+                        <div class="earn-card-title">
+                            Referral
+                        </div>
+
+                        <div class="earn-card-subtitle">
+                            বন্ধুদের invite করে bonus earn করুন
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="secondary-btn"
+                    type="button"
+                    onclick="navigate('profile')"
+                >
+                    Referral দেখুন
+                    <span>›</span>
                 </button>
 
             </div>
@@ -594,9 +864,9 @@
         </section>
 
 
-        <!-- =================================================
+        <!-- =====================================================
              TASKS
-             ================================================= -->
+             ===================================================== -->
 
         <section
             id="tasks"
@@ -606,26 +876,60 @@
 
             <div class="page-heading">
 
+                <div class="eyebrow">
+                    AVAILABLE TASKS
+                </div>
+
                 <h1 class="page-title">
                     Tasks
                 </h1>
 
                 <p class="page-description">
-                    Available কাজ সম্পন্ন করে QEXC earn করুন।
+                    কাজ সম্পন্ন করে verified QEXC reward সংগ্রহ করুন।
                 </p>
 
             </div>
 
 
-            <div class="section-header">
+            <div class="task-summary-card">
 
-                <h2 class="section-title">
-                    Available Tasks
-                </h2>
+                <div class="task-summary-left">
 
-                <span id="taskCount">
+                    <div class="task-summary-icon">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M5 4h14v16H5z"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linejoin="round"
+                            />
+                            <path
+                                d="M8 8h8M8 12h8M8 16h5"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
+                        </svg>
+                    </div>
+
+                    <div>
+                        <div class="task-summary-title">
+                            Available Tasks
+                        </div>
+
+                        <div class="task-summary-subtitle">
+                            verified rewards
+                        </div>
+                    </div>
+
+                </div>
+
+                <div
+                    id="taskCount"
+                    class="task-count"
+                >
                     0 tasks
-                </span>
+                </div>
 
             </div>
 
@@ -635,30 +939,21 @@
                 class="task-list"
             >
 
-                <!-- JS will render tasks here -->
-
                 <div class="empty-state">
 
                     <div class="empty-icon">
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <rect
-                                x="4"
-                                y="3"
-                                width="16"
-                                height="18"
-                                rx="2"
-                            ></rect>
-
-                            <path d="M8 8h8"></path>
-                            <path d="M8 12h8"></path>
-                            <path d="M8 16h5"></path>
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M5 4h14v16H5z"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            />
+                            <path
+                                d="M8 8h8M8 12h8M8 16h5"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
                         </svg>
                     </div>
 
@@ -677,9 +972,118 @@
         </section>
 
 
-        <!-- =================================================
+        <!-- =====================================================
+             LEADERBOARD
+             ===================================================== -->
+
+        <section
+            id="leaderboard"
+            class="page"
+            data-page="leaderboard"
+        >
+
+            <div class="page-heading">
+
+                <div class="eyebrow">
+                    TOP EARNERS
+                </div>
+
+                <h1 class="page-title">
+                    Leaderboard
+                </h1>
+
+                <p class="page-description">
+                    QEXUS-এর সেরা earners-দের ranking দেখুন।
+                </p>
+
+            </div>
+
+
+            <div class="leaderboard-tabs">
+
+                <button
+                    class="leaderboard-tab active"
+                    type="button"
+                    data-period="weekly"
+                    onclick="loadLeaderboard('weekly')"
+                >
+                    Weekly
+                </button>
+
+                <button
+                    class="leaderboard-tab"
+                    type="button"
+                    data-period="monthly"
+                    onclick="loadLeaderboard('monthly')"
+                >
+                    Monthly
+                </button>
+
+                <button
+                    class="leaderboard-tab"
+                    type="button"
+                    data-period="all"
+                    onclick="loadLeaderboard('all')"
+                >
+                    All Time
+                </button>
+
+            </div>
+
+
+            <div
+                id="leaderboardTop"
+                class="leaderboard-top"
+            >
+
+                <div class="leaderboard-loading">
+                    Ranking লোড হচ্ছে...
+                </div>
+
+            </div>
+
+
+            <div
+                id="leaderboardList"
+                class="leaderboard-list"
+            >
+
+                <div class="empty-state">
+
+                    <div class="empty-icon">
+                        🏆
+                    </div>
+
+                    <div class="empty-title">
+                        Leaderboard লোড হচ্ছে...
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="myLeaderboardRank"
+                class="my-rank-card"
+            >
+
+                <div class="my-rank-label">
+                    আপনার Ranking
+                </div>
+
+                <div class="my-rank-value">
+                    —
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
              WALLET
-             ================================================= -->
+             ===================================================== -->
 
         <section
             id="wallet"
@@ -689,12 +1093,16 @@
 
             <div class="page-heading">
 
+                <div class="eyebrow">
+                    YOUR FINANCES
+                </div>
+
                 <h1 class="page-title">
                     Wallet
                 </h1>
 
                 <p class="page-description">
-                    আপনার balance এবং earning history।
+                    আপনার QEXC balance এবং transaction history।
                 </p>
 
             </div>
@@ -719,6 +1127,9 @@
                 >
                     ৳0.00
                 </div>
+
+
+                <div class="wallet-divider"></div>
 
 
                 <div class="wallet-stats">
@@ -770,9 +1181,53 @@
 
             <div class="section-header">
 
-                <h2 class="section-title">
-                    Transaction History
-                </h2>
+                <div>
+                    <div class="section-kicker">
+                        HISTORY
+                    </div>
+
+                    <h2 class="section-title">
+                        Transaction History
+                    </h2>
+                </div>
+
+                <button
+                    class="icon-button small"
+                    type="button"
+                    onclick="refreshWallet()"
+                    aria-label="Refresh wallet"
+                >
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path
+                            d="M20 11a8 8 0 0 0-14.5-4.7L4 8"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                        <path
+                            d="M4 4v4h4"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                        <path
+                            d="M4 13a8 8 0 0 0 14.5 4.7L20 16"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                        <path
+                            d="M20 20v-4h-4"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                    </svg>
+                </button>
 
             </div>
 
@@ -785,17 +1240,13 @@
                 <div class="empty-state">
 
                     <div class="empty-icon">
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <path d="M4 6h16"></path>
-                            <path d="M4 12h16"></path>
-                            <path d="M4 18h10"></path>
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M4 6h16M4 12h16M4 18h10"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
                         </svg>
                     </div>
 
@@ -810,28 +1261,15 @@
         </section>
 
 
-        <!-- =================================================
+        <!-- =====================================================
              PROFILE
-             ================================================= -->
+             ===================================================== -->
 
         <section
             id="profile"
             class="page"
             data-page="profile"
         >
-
-            <div class="page-heading">
-
-                <h1 class="page-title">
-                    Profile
-                </h1>
-
-                <p class="page-description">
-                    আপনার QEXUS account information।
-                </p>
-
-            </div>
-
 
             <div class="profile-header">
 
@@ -859,6 +1297,60 @@
             </div>
 
 
+            <!-- Profile Stats -->
+
+            <div class="profile-stats">
+
+                <div class="profile-stat">
+
+                    <div
+                        id="profileTotalEarned"
+                        class="profile-stat-value"
+                    >
+                        0
+                    </div>
+
+                    <div class="profile-stat-label">
+                        Total Earned
+                    </div>
+
+                </div>
+
+
+                <div class="profile-stat">
+
+                    <div
+                        id="profileReferrals"
+                        class="profile-stat-value"
+                    >
+                        0
+                    </div>
+
+                    <div class="profile-stat-label">
+                        Referrals
+                    </div>
+
+                </div>
+
+
+                <div class="profile-stat">
+
+                    <div
+                        id="profileRank"
+                        class="profile-stat-value"
+                    >
+                        —
+                    </div>
+
+                    <div class="profile-stat-label">
+                        Rank
+                    </div>
+
+                </div>
+
+            </div>
+
+
             <!-- Referral -->
 
             <div class="referral-card">
@@ -868,7 +1360,7 @@
                 </div>
 
                 <div class="referral-description">
-                    আপনার referral link শেয়ার করে QEXUS community বড় করতে সাহায্য করুন।
+                    আপনার referral link শেয়ার করে QEXUS community বড় করুন এবং eligible referral reward earn করুন।
                 </div>
 
 
@@ -887,26 +1379,44 @@
                         onclick="copyReferral()"
                         aria-label="Copy referral link"
                     >
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
+                        <svg viewBox="0 0 24 24" fill="none">
                             <rect
                                 x="9"
                                 y="9"
                                 width="11"
                                 height="11"
                                 rx="2"
-                            ></rect>
-
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            />
                             <path
                                 d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
-                            ></path>
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
                         </svg>
+                    </button>
+
+                </div>
+
+
+                <div class="referral-actions">
+
+                    <button
+                        class="secondary-btn"
+                        type="button"
+                        onclick="copyReferral()"
+                    >
+                        Copy Link
+                    </button>
+
+                    <button
+                        class="primary-btn"
+                        type="button"
+                        onclick="shareReferral()"
+                    >
+                        Share
                     </button>
 
                 </div>
@@ -918,9 +1428,15 @@
 
             <div class="section-header">
 
-                <h2 class="section-title">
-                    Settings & Support
-                </h2>
+                <div>
+                    <div class="section-kicker">
+                        ACCOUNT
+                    </div>
+
+                    <h2 class="section-title">
+                        Settings & Support
+                    </h2>
+                </div>
 
             </div>
 
@@ -930,21 +1446,61 @@
                 <button
                     class="setting-item"
                     type="button"
+                    onclick="openNotifications()"
+                >
+                    <span class="setting-icon blue">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
+                            <path
+                                d="M10 21h4"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
+                        </svg>
+                    </span>
+
+                    <span class="setting-text">
+                        Notifications
+                    </span>
+
+                    <span class="setting-arrow">
+                        ›
+                    </span>
+                </button>
+
+
+                <button
+                    class="setting-item"
+                    type="button"
                     onclick="showHelp()"
                 >
-
-                    <span class="setting-icon">
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <circle cx="12" cy="12" r="9"></circle>
-                            <path d="M9.5 9a2.5 2.5 0 1 1 4.2 1.8c-.9.8-1.7 1.2-1.7 2.7"></path>
-                            <path d="M12 17h.01"></path>
+                    <span class="setting-icon green">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <circle
+                                cx="12"
+                                cy="12"
+                                r="9"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            />
+                            <path
+                                d="M9.5 9a2.5 2.5 0 1 1 4.2 1.8c-.9.8-1.7 1.2-1.7 2.7"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
+                            <path
+                                d="M12 17h.01"
+                                stroke="currentColor"
+                                stroke-width="2.5"
+                                stroke-linecap="round"
+                            />
                         </svg>
                     </span>
 
@@ -955,7 +1511,142 @@
                     <span class="setting-arrow">
                         ›
                     </span>
+                </button>
 
+
+                <button
+                    class="setting-item"
+                    type="button"
+                    onclick="openPolicy('privacy')"
+                >
+                    <span class="setting-icon purple">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M12 3 20 6v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3Z"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linejoin="round"
+                            />
+                            <path
+                                d="m9 12 2 2 4-4"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                        </svg>
+                    </span>
+
+                    <span class="setting-text">
+                        Privacy Policy
+                    </span>
+
+                    <span class="setting-arrow">
+                        ›
+                    </span>
+                </button>
+
+
+                <button
+                    class="setting-item"
+                    type="button"
+                    onclick="openPolicy('terms')"
+                >
+                    <span class="setting-icon orange">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M5 3h14v18H5z"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linejoin="round"
+                            />
+                            <path
+                                d="M8 8h8M8 12h8M8 16h5"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
+                        </svg>
+                    </span>
+
+                    <span class="setting-text">
+                        Terms of Use
+                    </span>
+
+                    <span class="setting-arrow">
+                        ›
+                    </span>
+                </button>
+
+
+                <button
+                    class="setting-item"
+                    type="button"
+                    onclick="openPolicy('qexc')"
+                >
+                    <span class="setting-icon green">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <circle
+                                cx="12"
+                                cy="12"
+                                r="9"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            />
+                            <path
+                                d="M8 12h8M12 8v8"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
+                        </svg>
+                    </span>
+
+                    <span class="setting-text">
+                        QEXC Policy
+                    </span>
+
+                    <span class="setting-arrow">
+                        ›
+                    </span>
+                </button>
+
+
+                <button
+                    class="setting-item"
+                    type="button"
+                    onclick="openPolicy('withdrawal')"
+                >
+                    <span class="setting-icon blue">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M4 7h16v13H4z"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linejoin="round"
+                            />
+                            <path
+                                d="M8 7V5a2 2 0 0 1 2-2h8"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
+                            <path
+                                d="M15 13h5"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
+                        </svg>
+                    </span>
+
+                    <span class="setting-text">
+                        Money Transfer Policy
+                    </span>
+
+                    <span class="setting-arrow">
+                        ›
+                    </span>
                 </button>
 
 
@@ -964,19 +1655,27 @@
                     type="button"
                     onclick="showAbout()"
                 >
-
-                    <span class="setting-icon">
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <circle cx="12" cy="12" r="9"></circle>
-                            <path d="M12 11v5"></path>
-                            <path d="M12 8h.01"></path>
+                    <span class="setting-icon purple">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <circle
+                                cx="12"
+                                cy="12"
+                                r="9"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            />
+                            <path
+                                d="M12 11v5"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                                stroke-linecap="round"
+                            />
+                            <path
+                                d="M12 8h.01"
+                                stroke="currentColor"
+                                stroke-width="2.5"
+                                stroke-linecap="round"
+                            />
                         </svg>
                     </span>
 
@@ -987,7 +1686,6 @@
                     <span class="setting-arrow">
                         ›
                     </span>
-
                 </button>
 
             </div>
@@ -997,9 +1695,169 @@
     </main>
 
 
-    <!-- =====================================================
+    <!-- =========================================================
+         BOTTOM NAVIGATION
+         ========================================================= -->
+
+    <nav
+        class="bottom-nav"
+        aria-label="Main navigation"
+    >
+
+        <button
+            class="nav-item active"
+            data-page="home"
+            type="button"
+            onclick="navigate('home')"
+        >
+            <svg viewBox="0 0 24 24" fill="none">
+                <path
+                    d="m3 10 9-7 9 7"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                />
+                <path
+                    d="M5 9v11h14V9"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linejoin="round"
+                />
+                <path
+                    d="M9 20v-6h6v6"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linejoin="round"
+                />
+            </svg>
+
+            <span>Home</span>
+        </button>
+
+
+        <button
+            class="nav-item"
+            data-page="earn"
+            type="button"
+            onclick="navigate('earn')"
+        >
+            <svg viewBox="0 0 24 24" fill="none">
+                <path
+                    d="M12 3v18"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                />
+                <path
+                    d="M17 7H9.5a3.5 3.5 0 0 0 0 7H15a3.5 3.5 0 0 1 0 7H7"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                />
+            </svg>
+
+            <span>Earn</span>
+        </button>
+
+
+        <button
+            class="nav-item"
+            data-page="leaderboard"
+            type="button"
+            onclick="navigate('leaderboard')"
+        >
+            <svg viewBox="0 0 24 24" fill="none">
+                <path
+                    d="M8 21h8M12 17V5"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                />
+                <path
+                    d="m8 9 4-4 4 4"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                />
+                <path
+                    d="M5 9v8M19 9v8"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                />
+            </svg>
+
+            <span>Ranks</span>
+        </button>
+
+
+        <button
+            class="nav-item"
+            data-page="wallet"
+            type="button"
+            onclick="navigate('wallet')"
+        >
+            <svg viewBox="0 0 24 24" fill="none">
+                <rect
+                    x="3"
+                    y="6"
+                    width="18"
+                    height="14"
+                    rx="3"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                />
+                <path
+                    d="M16 12h5"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                />
+                <circle
+                    cx="16"
+                    cy="12"
+                    r="1"
+                    fill="currentColor"
+                />
+            </svg>
+
+            <span>Wallet</span>
+        </button>
+
+
+        <button
+            class="nav-item"
+            data-page="profile"
+            type="button"
+            onclick="navigate('profile')"
+        >
+            <svg viewBox="0 0 24 24" fill="none">
+                <circle
+                    cx="12"
+                    cy="8"
+                    r="4"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                />
+                <path
+                    d="M4 21a8 8 0 0 1 16 0"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                />
+            </svg>
+
+            <span>Profile</span>
+        </button>
+
+    </nav>
+
+
+    <!-- =========================================================
          WITHDRAW MODAL
-         ===================================================== -->
+         ========================================================= -->
 
     <div
         id="withdrawModal"
@@ -1013,8 +1871,19 @@
 
             <div class="modal-handle"></div>
 
+            <button
+                class="modal-close"
+                type="button"
+                onclick="closeWithdrawModal()"
+                aria-label="Close"
+            >
+                ×
+            </button>
 
-            <div class="modal-title" id="withdrawTitle">
+            <div
+                class="modal-title"
+                id="withdrawTitle"
+            >
                 Withdraw
             </div>
 
@@ -1023,23 +1892,27 @@
             </div>
 
 
-            <div class="wallet-stat" style="margin-top:15px;">
+            <div class="withdraw-balance">
 
-                <div class="wallet-stat-label">
-                    Available
+                <div>
+                    <div class="wallet-stat-label">
+                        Available
+                    </div>
+
+                    <div
+                        id="withdrawAvailable"
+                        class="wallet-stat-value"
+                    >
+                        ৳0.00
+                    </div>
                 </div>
 
-                <div
-                    id="withdrawAvailable"
-                    class="wallet-stat-value"
-                >
-                    ৳0.00
+                <div class="withdraw-balance-icon">
+                    ৳
                 </div>
 
             </div>
 
-
-            <!-- Amount -->
 
             <div class="input-group">
 
@@ -1060,17 +1933,21 @@
                     placeholder="100"
                 >
 
+                <div
+                    id="withdrawAmountHint"
+                    class="input-hint"
+                >
+                    Minimum ৳100
+                </div>
+
             </div>
 
-
-            <!-- Payment Method -->
 
             <div class="input-group">
 
                 <label class="input-label">
                     Payment Method
                 </label>
-
 
                 <div class="method-grid">
 
@@ -1080,7 +1957,11 @@
                         data-method="bKash"
                         onclick="selectWithdrawMethod(this)"
                     >
-                        bKash
+                        <span class="method-logo">
+                            bK
+                        </span>
+
+                        <span>bKash</span>
                     </button>
 
 
@@ -1090,15 +1971,17 @@
                         data-method="Nagad"
                         onclick="selectWithdrawMethod(this)"
                     >
-                        Nagad
+                        <span class="method-logo">
+                            N
+                        </span>
+
+                        <span>Nagad</span>
                     </button>
 
                 </div>
 
             </div>
 
-
-            <!-- Number -->
 
             <div class="input-group">
 
@@ -1118,6 +2001,38 @@
                     placeholder="01XXXXXXXXX"
                 >
 
+                <div class="input-hint">
+                    আপনার নিজের valid mobile financial account ব্যবহার করুন।
+                </div>
+
+            </div>
+
+
+            <div class="withdraw-warning">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path
+                        d="M12 3 21 20H3L12 3Z"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linejoin="round"
+                    />
+                    <path
+                        d="M12 9v4"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                    />
+                    <path
+                        d="M12 16h.01"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                    />
+                </svg>
+
+                <span>
+                    Withdrawal request manual review-এর পর process হবে।
+                </span>
             </div>
 
 
@@ -1135,7 +2050,6 @@
                 class="secondary-btn"
                 type="button"
                 onclick="closeWithdrawModal()"
-                style="width:100%;margin-top:9px;"
             >
                 Cancel
             </button>
@@ -1145,9 +2059,242 @@
     </div>
 
 
-    <!-- =====================================================
+    <!-- =========================================================
+         OFFICIAL CHANNEL / ANNOUNCEMENT POPUP
+         ========================================================= -->
+
+    <div
+        id="announcementModal"
+        class="modal announcement-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="announcementTitle"
+    >
+
+        <div class="modal-content announcement-content">
+
+            <div class="announcement-icon">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path
+                        d="M21 5 3 12l7 2 2 7 3-6 6-10Z"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linejoin="round"
+                    />
+                    <path
+                        d="m10 14 5-5"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                    />
+                </svg>
+            </div>
+
+
+            <div
+                id="announcementTitle"
+                class="modal-title"
+            >
+                Join our Official Channel
+            </div>
+
+
+            <div
+                id="announcementDescription"
+                class="modal-subtitle announcement-description"
+            >
+                QEXUS-এর সর্বশেষ খবর, গুরুত্বপূর্ণ update এবং announcements পেতে আমাদের official channel-এ join করুন।
+            </div>
+
+
+            <a
+                id="announcementButton"
+                class="primary-btn announcement-button"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Join Channel
+            </a>
+
+
+            <button
+                id="announcementLater"
+                class="secondary-btn"
+                type="button"
+                onclick="closeAnnouncement()"
+            >
+                Maybe Later
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         NOTIFICATIONS MODAL
+         ========================================================= -->
+
+    <div
+        id="notificationModal"
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="notificationTitle"
+    >
+
+        <div class="modal-content">
+
+            <div class="modal-handle"></div>
+
+            <button
+                class="modal-close"
+                type="button"
+                onclick="closeNotifications()"
+                aria-label="Close"
+            >
+                ×
+            </button>
+
+            <div
+                id="notificationTitle"
+                class="modal-title"
+            >
+                Notifications
+            </div>
+
+            <div class="modal-subtitle">
+                আপনার QEXUS activity ও গুরুত্বপূর্ণ update।
+            </div>
+
+
+            <div
+                id="notificationList"
+                class="notification-list"
+            >
+
+                <div class="empty-state compact">
+
+                    <div class="empty-icon">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path
+                                d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            />
+                            <path
+                                d="M10 21h4"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            />
+                        </svg>
+                    </div>
+
+                    <div class="empty-title">
+                        কোনো notification নেই
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         POLICY / CONTENT MODAL
+         ========================================================= -->
+
+    <div
+        id="contentModal"
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="contentModalTitle"
+    >
+
+        <div class="modal-content policy-content">
+
+            <div class="modal-handle"></div>
+
+            <button
+                class="modal-close"
+                type="button"
+                onclick="closeContentModal()"
+                aria-label="Close"
+            >
+                ×
+            </button>
+
+            <div
+                id="contentModalTitle"
+                class="modal-title"
+            >
+                QEXUS
+            </div>
+
+            <div
+                id="contentModalBody"
+                class="policy-body"
+            >
+                Content loading...
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         HELP / ABOUT MODAL
+         ========================================================= -->
+
+    <div
+        id="infoModal"
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="infoModalTitle"
+    >
+
+        <div class="modal-content">
+
+            <div class="modal-handle"></div>
+
+            <button
+                class="modal-close"
+                type="button"
+                onclick="closeInfoModal()"
+                aria-label="Close"
+            >
+                ×
+            </button>
+
+            <div
+                id="infoModalTitle"
+                class="modal-title"
+            >
+                QEXUS
+            </div>
+
+            <div
+                id="infoModalBody"
+                class="policy-body"
+            >
+                Loading...
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
          TOAST
-         ===================================================== -->
+         ========================================================= -->
 
     <div
         id="toast"
@@ -1157,172 +2304,33 @@
     ></div>
 
 
-    <!-- =====================================================
-         BOTTOM NAVIGATION
-         ===================================================== -->
+    <!-- =========================================================
+         GLOBAL LOADING
+         ========================================================= -->
 
-    <nav
-        class="bottom-nav"
-        aria-label="Main navigation"
+    <div
+        id="globalLoader"
+        class="global-loader hidden"
+        aria-hidden="true"
     >
 
-        <button
-            class="nav-item active"
-            data-page="home"
-            type="button"
-            onclick="navigate('home')"
-        >
+        <div class="loader-spinner"></div>
 
-            <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-            >
-                <path d="m3 10 9-7 9 7"></path>
-                <path d="M5 9v11h14V9"></path>
-                <path d="M9 20v-6h6v6"></path>
-            </svg>
+        <div class="loader-text">
+            QEXUS
+        </div>
 
-            <span>
-                Home
-            </span>
+    </div>
 
-        </button>
-
-
-        <button
-            class="nav-item"
-            data-page="earn"
-            type="button"
-            onclick="navigate('earn')"
-        >
-
-            <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-            >
-                <path d="M12 3v18"></path>
-                <path d="M17 7H9.5a3.5 3.5 0 0 0 0 7H15a3.5 3.5 0 0 1 0 7H7"></path>
-            </svg>
-
-            <span>
-                Earn
-            </span>
-
-        </button>
-
-
-        <button
-            class="nav-item"
-            data-page="tasks"
-            type="button"
-            onclick="navigate('tasks')"
-        >
-
-            <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-            >
-                <rect
-                    x="4"
-                    y="3"
-                    width="16"
-                    height="18"
-                    rx="2"
-                ></rect>
-
-                <path d="M8 8h8"></path>
-                <path d="M8 12h8"></path>
-                <path d="M8 16h5"></path>
-            </svg>
-
-            <span>
-                Tasks
-            </span>
-
-        </button>
-
-
-        <button
-            class="nav-item"
-            data-page="wallet"
-            type="button"
-            onclick="navigate('wallet')"
-        >
-
-            <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-            >
-                <rect
-                    x="3"
-                    y="6"
-                    width="18"
-                    height="14"
-                    rx="3"
-                ></rect>
-
-                <path d="M16 12h5"></path>
-                <circle cx="16" cy="12" r="1"></circle>
-            </svg>
-
-            <span>
-                Wallet
-            </span>
-
-        </button>
-
-
-        <button
-            class="nav-item"
-            data-page="profile"
-            type="button"
-            onclick="navigate('profile')"
-        >
-
-            <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-            >
-                <circle cx="12" cy="8" r="4"></circle>
-                <path d="M4 21a8 8 0 0 1 16 0"></path>
-            </svg>
-
-            <span>
-                Profile
-            </span>
-
-        </button>
-
-    </nav>
 
 </div>
 
 
-<!-- =========================================================
+<!-- =============================================================
      Main JavaScript
-     ========================================================= -->
+     ============================================================= -->
 
 <script src="js/app.js"></script>
 
 </body>
-</html>
+        </html>
