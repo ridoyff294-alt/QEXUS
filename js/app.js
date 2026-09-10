@@ -2,6 +2,13 @@
    QEXUS — app.js
    Telegram Mini App frontend
    Backend: https://qexus-backend.onrender.com/api
+
+   FIXES:
+   1. Daily Bonus countdown timer
+   2. Daily Bonus local cooldown persistence
+   3. Prevent repeated bonus clicks
+   4. Fake rewarded-ad payment removed
+   5. Ad reward only works when backend/ad verification exists
    ========================================================= */
 
 (() => {
@@ -11,63 +18,65 @@
      CONFIG
   ========================= */
 
-  const API_BASE = "https://qexus-backend.onrender.com/api";
+  const API_BASE =
+    "https://qexus-backend.onrender.com/api";
 
-  const tg = window.Telegram?.WebApp || null;
+  const DAILY_BONUS_QEXC = 10;
+  const AD_REWARD_QEXC = 3;
+
+  /*
+    Bangladesh timezone:
+    UTC + 6
+  */
+  const BD_OFFSET_MS = 6 * 60 * 60 * 1000;
+
+  const tg =
+    window.Telegram?.WebApp || null;
+
+
+  /* =========================
+     STATE
+  ========================= */
 
   let state = {
     user: null,
+
     wallet: {
       balance_qexc: 0,
       locked_qexc: 0,
       total_earned: 0,
       total_withdrawn: 0
     },
+
     transactions: [],
     tasks: [],
+
     loading: false,
-    selectedWithdrawMethod: "bKash"
+
+    selectedWithdrawMethod: "bKash",
+
+    dailyBonus: {
+      claimed: false,
+      nextClaimAt: 0
+    },
+
+    ad: {
+      available: false,
+      processing: false
+    }
   };
-
-
-  /* =========================
-     TELEGRAM INIT
-  ========================= */
-
-  function initTelegram() {
-    if (!tg) {
-      console.warn("Telegram WebApp is not available.");
-      return;
-    }
-
-    try {
-      tg.ready();
-      tg.expand();
-
-      if (tg.setHeaderColor) {
-        tg.setHeaderColor("#ffffff");
-      }
-
-      if (tg.setBackgroundColor) {
-        tg.setBackgroundColor("#f6f8fb");
-      }
-
-      if (tg.disableVerticalSwipes) {
-        tg.disableVerticalSwipes();
-      }
-    } catch (error) {
-      console.warn("Telegram initialization error:", error);
-    }
-  }
 
 
   /* =========================
      HELPERS
   ========================= */
 
-  const $ = (selector) => document.querySelector(selector);
+  const $ = selector =>
+    document.querySelector(selector);
 
-  const $$ = (selector) => [...document.querySelectorAll(selector)];
+  const $$ = selector =>
+    [...document.querySelectorAll(selector)];
+
 
   function escapeHTML(value) {
     return String(value ?? "")
@@ -78,6 +87,7 @@
       .replace(/'/g, "&#039;");
   }
 
+
   function formatNumber(number) {
     const n = Number(number || 0);
 
@@ -86,17 +96,28 @@
     }).format(n);
   }
 
+
   function qexcToBDT(qexc) {
     return Number(qexc || 0) * 0.10;
   }
+
 
   function bdtToQexc(bdt) {
     return Number(bdt || 0) * 10;
   }
 
+
   function formatBDT(amount) {
     return `৳${formatNumber(amount)}`;
   }
+
+
+  function delay(ms) {
+    return new Promise(resolve =>
+      setTimeout(resolve, ms)
+    );
+  }
+
 
   function nowText() {
     return new Date().toLocaleString("en-BD", {
@@ -110,31 +131,332 @@
 
 
   /* =========================
+     BANGLADESH DATE
+  ========================= */
+
+  function getBangladeshDate() {
+    return new Date(
+      Date.now() + BD_OFFSET_MS
+    );
+  }
+
+
+  function getBangladeshDateKey() {
+    const d = getBangladeshDate();
+
+    const year = d.getUTCFullYear();
+    const month = String(
+      d.getUTCMonth() + 1
+    ).padStart(2, "0");
+
+    const day = String(
+      d.getUTCDate()
+    ).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  }
+
+
+  function getNextBangladeshMidnight() {
+    const d = getBangladeshDate();
+
+    const year = d.getUTCFullYear();
+    const month = d.getUTCMonth();
+    const day = d.getUTCDate();
+
+    /*
+      Bangladesh midnight represented
+      as UTC timestamp.
+    */
+
+    const next =
+      Date.UTC(
+        year,
+        month,
+        day + 1,
+        0,
+        0,
+        0
+      ) - BD_OFFSET_MS;
+
+    return next;
+  }
+
+
+  /* =========================
+     DAILY BONUS STORAGE
+  ========================= */
+
+  function getDailyStorageKey() {
+    const id =
+      state.user?.telegram_id ||
+      state.user?.id ||
+      "guest";
+
+    return `qexus_daily_bonus_${id}`;
+  }
+
+
+  function saveDailyBonusState() {
+    try {
+      localStorage.setItem(
+        getDailyStorageKey(),
+        JSON.stringify({
+          date: getBangladeshDateKey(),
+          nextClaimAt:
+            state.dailyBonus.nextClaimAt
+        })
+      );
+    } catch (error) {
+      console.warn(
+        "Daily bonus storage error:",
+        error
+      );
+    }
+  }
+
+
+  function loadDailyBonusState() {
+    try {
+      const raw =
+        localStorage.getItem(
+          getDailyStorageKey()
+        );
+
+      if (!raw) {
+        state.dailyBonus = {
+          claimed: false,
+          nextClaimAt: 0
+        };
+
+        return;
+      }
+
+      const data =
+        JSON.parse(raw);
+
+      const today =
+        getBangladeshDateKey();
+
+      /*
+        If stored date is not today,
+        bonus is available again.
+      */
+
+      if (
+        data.date !== today ||
+        !data.nextClaimAt ||
+        Date.now() >= Number(data.nextClaimAt)
+      ) {
+        state.dailyBonus = {
+          claimed: false,
+          nextClaimAt: 0
+        };
+
+        localStorage.removeItem(
+          getDailyStorageKey()
+        );
+
+        return;
+      }
+
+      state.dailyBonus = {
+        claimed: true,
+        nextClaimAt:
+          Number(data.nextClaimAt)
+      };
+
+    } catch (error) {
+      console.warn(
+        "Daily bonus load error:",
+        error
+      );
+
+      state.dailyBonus = {
+        claimed: false,
+        nextClaimAt: 0
+      };
+    }
+  }
+
+
+  /* =========================
+     DAILY BONUS UI
+  ========================= */
+
+  let dailyTimerInterval = null;
+
+
+  function formatCountdown(ms) {
+    if (ms <= 0) {
+      return "00:00:00";
+    }
+
+    const totalSeconds =
+      Math.floor(ms / 1000);
+
+    const hours =
+      Math.floor(
+        totalSeconds / 3600
+      );
+
+    const minutes =
+      Math.floor(
+        (totalSeconds % 3600) / 60
+      );
+
+    const seconds =
+      totalSeconds % 60;
+
+    return [
+      String(hours).padStart(2, "0"),
+      String(minutes).padStart(2, "0"),
+      String(seconds).padStart(2, "0")
+    ].join(":");
+  }
+
+
+  function getDailyButtons() {
+    return $$(
+      '[data-action="daily-bonus"]'
+    );
+  }
+
+
+  function updateDailyBonusUI() {
+    const buttons =
+      getDailyButtons();
+
+    if (!buttons.length) {
+      return;
+    }
+
+    const now = Date.now();
+
+    /*
+      Cooldown finished
+    */
+
+    if (
+      state.dailyBonus.claimed &&
+      now >= state.dailyBonus.nextClaimAt
+    ) {
+      state.dailyBonus.claimed = false;
+      state.dailyBonus.nextClaimAt = 0;
+
+      try {
+        localStorage.removeItem(
+          getDailyStorageKey()
+        );
+      } catch (_) {}
+    }
+
+
+    buttons.forEach(button => {
+
+      if (state.dailyBonus.claimed) {
+
+        const remaining =
+          state.dailyBonus.nextClaimAt -
+          now;
+
+        button.disabled = true;
+
+        button.textContent =
+          `আবার পাবেন ${formatCountdown(remaining)}`;
+
+        button.classList.add(
+          "disabled"
+        );
+
+      } else {
+
+        button.disabled = false;
+
+        button.textContent =
+          "Daily Bonus নিন";
+
+        button.classList.remove(
+          "disabled"
+        );
+      }
+    });
+  }
+
+
+  function startDailyBonusTimer() {
+    if (dailyTimerInterval) {
+      clearInterval(
+        dailyTimerInterval
+      );
+    }
+
+    updateDailyBonusUI();
+
+    dailyTimerInterval =
+      setInterval(() => {
+        updateDailyBonusUI();
+      }, 1000);
+  }
+
+
+  function markDailyBonusClaimed() {
+    state.dailyBonus = {
+      claimed: true,
+      nextClaimAt:
+        getNextBangladeshMidnight()
+    };
+
+    saveDailyBonusState();
+
+    updateDailyBonusUI();
+  }
+
+
+  /* =========================
      TOAST
   ========================= */
 
-  function showToast(message, type = "default") {
+  function showToast(
+    message,
+    type = "default"
+  ) {
     let toast = $("#toast");
 
     if (!toast) {
-      toast = document.createElement("div");
+      toast =
+        document.createElement("div");
+
       toast.id = "toast";
       toast.className = "toast";
-      document.body.appendChild(toast);
+
+      document.body.appendChild(
+        toast
+      );
     }
 
-    toast.className = `toast ${type}`;
-    toast.textContent = message;
+    toast.className =
+      `toast ${type}`;
+
+    toast.textContent =
+      message;
 
     requestAnimationFrame(() => {
-      toast.classList.add("show");
+      toast.classList.add(
+        "show"
+      );
     });
 
-    clearTimeout(window.__qexusToastTimer);
+    clearTimeout(
+      window.__qexusToastTimer
+    );
 
-    window.__qexusToastTimer = setTimeout(() => {
-      toast.classList.remove("show");
-    }, 2800);
+    window.__qexusToastTimer =
+      setTimeout(() => {
+        toast.classList.remove(
+          "show"
+        );
+      }, 2800);
   }
 
 
@@ -142,20 +464,90 @@
      HAPTIC
   ========================= */
 
-  function haptic(type = "light") {
+  function haptic(
+    type = "light"
+  ) {
     try {
-      if (!tg?.HapticFeedback) return;
+
+      if (!tg?.HapticFeedback) {
+        return;
+      }
 
       if (type === "success") {
-        tg.HapticFeedback.notificationOccurred("success");
+
+        tg.HapticFeedback
+          .notificationOccurred(
+            "success"
+          );
+
       } else if (type === "error") {
-        tg.HapticFeedback.notificationOccurred("error");
+
+        tg.HapticFeedback
+          .notificationOccurred(
+            "error"
+          );
+
       } else if (type === "warning") {
-        tg.HapticFeedback.notificationOccurred("warning");
+
+        tg.HapticFeedback
+          .notificationOccurred(
+            "warning"
+          );
+
       } else {
-        tg.HapticFeedback.impactOccurred("light");
+
+        tg.HapticFeedback
+          .impactOccurred(
+            "light"
+          );
       }
+
     } catch (_) {}
+  }
+
+
+  /* =========================
+     TELEGRAM
+  ========================= */
+
+  function initTelegram() {
+
+    if (!tg) {
+      console.warn(
+        "Telegram WebApp unavailable."
+      );
+
+      return;
+    }
+
+    try {
+
+      tg.ready();
+      tg.expand();
+
+      if (tg.setHeaderColor) {
+        tg.setHeaderColor(
+          "#ffffff"
+        );
+      }
+
+      if (tg.setBackgroundColor) {
+        tg.setBackgroundColor(
+          "#f6f8fb"
+        );
+      }
+
+      if (tg.disableVerticalSwipes) {
+        tg.disableVerticalSwipes();
+      }
+
+    } catch (error) {
+
+      console.warn(
+        "Telegram initialization error:",
+        error
+      );
+    }
   }
 
 
@@ -163,48 +555,71 @@
      API
   ========================= */
 
-  async function apiRequest(endpoint, options = {}) {
+  async function apiRequest(
+    endpoint,
+    options = {}
+  ) {
+
     const headers = {
-      "Content-Type": "application/json",
+      "Content-Type":
+        "application/json",
+
       ...(options.headers || {})
     };
 
+
     /*
       IMPORTANT:
-      Never send BOT_TOKEN from frontend.
-
-      Telegram raw initData is used so backend
-      can securely validate the Telegram user.
+      Only Telegram raw initData.
+      Never send BOT_TOKEN.
     */
 
-    const initData = tg?.initData || "";
+    const initData =
+      tg?.initData || "";
 
     if (initData) {
-      headers["X-Telegram-Init-Data"] = initData;
+      headers[
+        "X-Telegram-Init-Data"
+      ] = initData;
     }
 
-    const response = await fetch(`${API_BASE}${endpoint}`, {
-      ...options,
-      headers
-    });
+
+    const response =
+      await fetch(
+        `${API_BASE}${endpoint}`,
+        {
+          ...options,
+          headers
+        }
+      );
+
 
     let data = null;
 
     try {
-      data = await response.json();
+
+      data =
+        await response.json();
+
     } catch (_) {
+
       data = null;
     }
 
+
     if (!response.ok) {
+
       const message =
         data?.detail ||
         data?.message ||
         data?.error ||
         `Request failed (${response.status})`;
 
-      throw new Error(message);
+      throw new Error(
+        message
+      );
     }
+
 
     return data;
   }
@@ -215,98 +630,150 @@
   ========================= */
 
   async function authenticate() {
+
     try {
+
       setLoadingState(true);
 
-      const data = await apiRequest("/auth", {
-        method: "POST",
-        body: JSON.stringify({})
-      });
+      const data =
+        await apiRequest(
+          "/auth",
+          {
+            method: "POST",
+            body: JSON.stringify({})
+          }
+        );
 
-      state.user = data.user || null;
+
+      state.user =
+        data.user || null;
+
 
       if (data.wallet) {
+
         state.wallet = {
           ...state.wallet,
           ...data.wallet
         };
       }
 
+
       renderUser();
       renderWallet();
+
+
+      /*
+        Load daily state only
+        after user is known.
+      */
+
+      loadDailyBonusState();
+      startDailyBonusTimer();
+
 
       return true;
 
     } catch (error) {
-      console.error("Auth error:", error);
 
-      /*
-        Browser testing outside Telegram can still show
-        the interface, but real authentication requires
-        Telegram initData.
-      */
+      console.error(
+        "Auth error:",
+        error
+      );
+
 
       if (!tg?.initData) {
+
         showToast(
           "Telegram-এর ভিতর থেকে QEXUS খুলুন",
           "warning"
         );
+
       } else {
+
         showToast(
-          error.message || "Login করা যায়নি",
+          error.message ||
+          "Login করা যায়নি",
           "error"
         );
       }
 
+
       return false;
 
     } finally {
+
       setLoadingState(false);
     }
   }
 
 
   /* =========================
-     USER RENDER
+     USER
   ========================= */
 
   function renderUser() {
-    const user = state.user;
 
-    if (!user) return;
+    const user =
+      state.user;
+
+    if (!user) {
+      return;
+    }
+
 
     const firstName =
       user.first_name ||
       user.username ||
       "User";
 
+
     const username =
       user.username
         ? `@${user.username}`
         : "QEXUS User";
 
+
     if ($("#userName")) {
-      $("#userName").textContent = firstName;
+
+      $("#userName")
+        .textContent =
+        firstName;
     }
+
 
     if ($("#profileName")) {
-      $("#profileName").textContent = firstName;
+
+      $("#profileName")
+        .textContent =
+        firstName;
     }
+
 
     if ($("#profileUsername")) {
-      $("#profileUsername").textContent = username;
+
+      $("#profileUsername")
+        .textContent =
+        username;
     }
+
 
     if ($("#profileAvatar")) {
-      const avatarLetter =
-        String(firstName).charAt(0).toUpperCase();
 
-      $("#profileAvatar").textContent = avatarLetter;
+      $("#profileAvatar")
+        .textContent =
+        String(firstName)
+          .charAt(0)
+          .toUpperCase();
     }
 
+
     if ($("#avatar")) {
-      $("#avatar").textContent =
-        String(firstName).charAt(0).toUpperCase();
+
+      $("#avatar")
+        .textContent =
+        String(firstName)
+          .charAt(0)
+          .toUpperCase();
     }
   }
 
@@ -316,67 +783,111 @@
   ========================= */
 
   async function loadWallet() {
+
     try {
-      const data = await apiRequest("/wallet");
+
+      const data =
+        await apiRequest(
+          "/wallet"
+        );
+
 
       if (data) {
+
         state.wallet = {
           ...state.wallet,
           ...data
         };
       }
 
+
       renderWallet();
 
     } catch (error) {
-      console.error("Wallet error:", error);
+
+      console.error(
+        "Wallet error:",
+        error
+      );
     }
   }
 
 
   function renderWallet() {
-    const wallet = state.wallet;
+
+    const wallet =
+      state.wallet;
+
 
     const qexc =
-      Number(wallet.balance_qexc || 0);
+      Number(
+        wallet.balance_qexc || 0
+      );
+
 
     const bdt =
       qexcToBDT(qexc);
 
+
     if ($("#balanceQEXC")) {
-      $("#balanceQEXC").textContent =
+
+      $("#balanceQEXC")
+        .textContent =
         `${formatNumber(qexc)} QEXC`;
     }
+
 
     if ($("#balanceBDT")) {
-      $("#balanceBDT").textContent =
+
+      $("#balanceBDT")
+        .textContent =
         formatBDT(bdt);
     }
 
+
     if ($("#walletQEXC")) {
-      $("#walletQEXC").textContent =
+
+      $("#walletQEXC")
+        .textContent =
         `${formatNumber(qexc)} QEXC`;
     }
 
+
     if ($("#walletBalance")) {
-      $("#walletBalance").textContent =
+
+      $("#walletBalance")
+        .textContent =
         formatBDT(bdt);
     }
+
 
     if ($("#totalEarned")) {
-      $("#totalEarned").textContent =
-        formatNumber(wallet.total_earned);
+
+      $("#totalEarned")
+        .textContent =
+        formatNumber(
+          wallet.total_earned
+        );
     }
+
 
     if ($("#totalWithdrawn")) {
-      $("#totalWithdrawn").textContent =
-        formatNumber(wallet.total_withdrawn);
+
+      $("#totalWithdrawn")
+        .textContent =
+        formatNumber(
+          wallet.total_withdrawn
+        );
     }
 
+
     if ($("#withdrawAvailable")) {
-      $("#withdrawAvailable").textContent =
+
+      $("#withdrawAvailable")
+        .textContent =
         formatBDT(bdt);
     }
+
 
     updateWithdrawButton();
   }
@@ -387,25 +898,41 @@
   ========================= */
 
   async function loadTransactions() {
+
     try {
-      const data = await apiRequest("/transactions");
+
+      const data =
+        await apiRequest(
+          "/transactions"
+        );
+
 
       state.transactions =
         Array.isArray(data)
           ? data
           : data?.transactions || [];
 
+
       renderTransactions();
 
     } catch (error) {
-      console.error("Transaction error:", error);
+
+      console.error(
+        "Transaction error:",
+        error
+      );
+
       renderTransactions();
     }
   }
 
 
   function getTransactionIcon(type) {
-    const t = String(type || "").toLowerCase();
+
+    const t =
+      String(type || "")
+        .toLowerCase();
+
 
     if (
       t.includes("withdraw") ||
@@ -413,6 +940,7 @@
     ) {
       return "↗";
     }
+
 
     if (
       t.includes("reward") ||
@@ -422,6 +950,7 @@
       return "+";
     }
 
+
     if (
       t.includes("task") ||
       t.includes("mission")
@@ -429,13 +958,19 @@
       return "✓";
     }
 
+
     return "•";
   }
 
 
-  function transactionStatusClass(status) {
+  function transactionStatusClass(
+    status
+  ) {
+
     const s =
-      String(status || "").toLowerCase();
+      String(status || "")
+        .toLowerCase();
+
 
     if (
       s.includes("paid") ||
@@ -445,12 +980,14 @@
       return "success";
     }
 
+
     if (
       s.includes("pending") ||
       s.includes("processing")
     ) {
       return "pending";
     }
+
 
     if (
       s.includes("cancel") ||
@@ -459,6 +996,7 @@
       return "cancelled";
     }
 
+
     if (
       s.includes("fail") ||
       s.includes("reject")
@@ -466,95 +1004,156 @@
       return "failed";
     }
 
+
     return "pending";
   }
 
 
   function renderTransactions() {
+
     const containers = [
       $("#recentTransactions"),
       $("#historyList")
     ].filter(Boolean);
 
-    containers.forEach(container => {
-      container.innerHTML = "";
 
-      if (!state.transactions.length) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">↔</div>
-            <div class="empty-title">
-              কোনো transaction নেই
+    containers.forEach(
+      container => {
+
+        container.innerHTML =
+          "";
+
+
+        if (
+          !state.transactions.length
+        ) {
+
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">↔</div>
+              <div class="empty-title">
+                কোনো transaction নেই
+              </div>
+              <div class="empty-description">
+                আপনার earning ও withdrawal history এখানে দেখা যাবে।
+              </div>
             </div>
-            <div class="empty-description">
-              আপনার earning ও withdrawal history এখানে দেখা যাবে।
+          `;
+
+          return;
+        }
+
+
+        const list =
+          container.id ===
+          "recentTransactions"
+            ? state.transactions.slice(
+                0,
+                5
+              )
+            : state.transactions;
+
+
+        list.forEach(tx => {
+
+          const amount =
+            Number(
+              tx.amount_qexc || 0
+            );
+
+
+          const positive =
+            amount > 0 &&
+            !String(
+              tx.type || ""
+            )
+              .toLowerCase()
+              .includes(
+                "withdraw"
+              );
+
+
+          const status =
+            tx.status
+              ? `
+                <span class="status ${
+                  transactionStatusClass(
+                    tx.status
+                  )
+                }">
+                  ${escapeHTML(
+                    tx.status
+                  )}
+                </span>
+              `
+              : "";
+
+
+          const item =
+            document.createElement(
+              "div"
+            );
+
+
+          item.className =
+            "transaction";
+
+
+          item.innerHTML = `
+            <div class="transaction-icon">
+              ${escapeHTML(
+                getTransactionIcon(
+                  tx.type
+                )
+              )}
             </div>
-          </div>
-        `;
-        return;
+
+            <div class="transaction-info">
+              <div class="transaction-title">
+                ${escapeHTML(
+                  tx.description ||
+                  tx.type ||
+                  "Transaction"
+                )}
+              </div>
+
+              <div class="transaction-date">
+                ${escapeHTML(
+                  tx.created_at
+                    ? new Date(
+                        tx.created_at
+                      ).toLocaleString(
+                        "en-BD"
+                      )
+                    : nowText()
+                )}
+                ${status}
+              </div>
+            </div>
+
+            <div class="transaction-amount ${
+              positive
+                ? "positive"
+                : "negative"
+            }">
+              ${
+                positive
+                  ? "+"
+                  : ""
+              }${formatNumber(
+                amount
+              )}
+              <small>QEXC</small>
+            </div>
+          `;
+
+
+          container.appendChild(
+            item
+          );
+        });
       }
-
-      const list =
-        container.id === "recentTransactions"
-          ? state.transactions.slice(0, 5)
-          : state.transactions;
-
-      list.forEach(tx => {
-        const amount =
-          Number(tx.amount_qexc || 0);
-
-        const positive =
-          amount > 0 &&
-          !String(tx.type || "")
-            .toLowerCase()
-            .includes("withdraw");
-
-        const status =
-          tx.status
-            ? `<span class="status ${transactionStatusClass(tx.status)}">
-                ${escapeHTML(tx.status)}
-              </span>`
-            : "";
-
-        const item = document.createElement("div");
-
-        item.className = "transaction";
-
-        item.innerHTML = `
-          <div class="transaction-icon">
-            ${escapeHTML(getTransactionIcon(tx.type))}
-          </div>
-
-          <div class="transaction-info">
-            <div class="transaction-title">
-              ${escapeHTML(
-                tx.description ||
-                tx.type ||
-                "Transaction"
-              )}
-            </div>
-
-            <div class="transaction-date">
-              ${escapeHTML(
-                tx.created_at
-                  ? new Date(tx.created_at).toLocaleString("en-BD")
-                  : nowText()
-              )}
-              ${status}
-            </div>
-          </div>
-
-          <div class="transaction-amount ${
-            positive ? "positive" : "negative"
-          }">
-            ${positive ? "+" : ""}${formatNumber(amount)}
-            <small>QEXC</small>
-          </div>
-        `;
-
-        container.appendChild(item);
-      });
-    });
+    );
   }
 
 
@@ -563,20 +1162,33 @@
   ========================= */
 
   async function loadTasks() {
+
     try {
-      const data = await apiRequest("/tasks");
+
+      const data =
+        await apiRequest(
+          "/tasks"
+        );
+
 
       state.tasks =
         Array.isArray(data)
           ? data
           : data?.tasks || [];
 
+
       renderTasks();
 
     } catch (error) {
-      console.error("Task loading error:", error);
+
+      console.error(
+        "Task loading error:",
+        error
+      );
+
 
       if ($("#taskList")) {
+
         $("#taskList").innerHTML = `
           <div class="empty-state">
             <div class="empty-icon">!</div>
@@ -594,13 +1206,22 @@
 
 
   function renderTasks() {
-    const container = $("#taskList");
 
-    if (!container) return;
+    const container =
+      $("#taskList");
 
-    container.innerHTML = "";
+
+    if (!container) {
+      return;
+    }
+
+
+    container.innerHTML =
+      "";
+
 
     if (!state.tasks.length) {
+
       container.innerHTML = `
         <div class="empty-state">
           <div class="empty-icon">✓</div>
@@ -616,51 +1237,87 @@
       return;
     }
 
-    state.tasks.forEach(task => {
-      const card =
-        document.createElement("div");
 
-      card.className = "task-card";
+    state.tasks.forEach(
+      task => {
 
-      const reward =
-        Number(task.reward_qexc || 0);
+        const card =
+          document.createElement(
+            "div"
+          );
 
-      card.innerHTML = `
-        <div class="task-icon">✓</div>
 
-        <div class="task-info">
-          <div class="task-title">
-            ${escapeHTML(task.title || "Task")}
+        card.className =
+          "task-card";
+
+
+        const reward =
+          Number(
+            task.reward_qexc || 0
+          );
+
+
+        card.innerHTML = `
+          <div class="task-icon">
+            ✓
           </div>
 
-          <div class="task-meta">
-            Complete করুন এবং reward নিন
+          <div class="task-info">
+            <div class="task-title">
+              ${escapeHTML(
+                task.title ||
+                "Task"
+              )}
+            </div>
+
+            <div class="task-meta">
+              Complete করুন এবং reward নিন
+            </div>
           </div>
-        </div>
 
-        <div class="task-reward">
-          +${formatNumber(reward)}
-          <small>QEXC</small>
-        </div>
+          <div class="task-reward">
+            +${formatNumber(
+              reward
+            )}
+            <small>QEXC</small>
+          </div>
 
-        <button
-          class="secondary-btn task-btn"
-          type="button"
-          data-task-id="${escapeHTML(task.id)}"
-        >
-          Start
-        </button>
-      `;
+          <button
+            class="secondary-btn task-btn"
+            type="button"
+            data-task-id="${escapeHTML(
+              task.id
+            )}"
+          >
+            Start
+          </button>
+        `;
 
-      const button =
-        card.querySelector(".task-btn");
 
-      button.addEventListener("click", () => {
-        completeTask(task, card, button);
-      });
+        const button =
+          card.querySelector(
+            ".task-btn"
+          );
 
-      container.appendChild(card);
-    });
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            completeTask(
+              task,
+              card,
+              button
+            );
+          }
+        );
+
+
+        container.appendChild(
+          card
+        );
+      }
+    );
   }
 
 
@@ -668,77 +1325,116 @@
      COMPLETE TASK
   ========================= */
 
-  async function completeTask(task, card, button) {
-    if (!task?.id || !button) return;
+  async function completeTask(
+    task,
+    card,
+    button
+  ) {
 
-    if (button.dataset.processing === "true") {
+    if (
+      !task?.id ||
+      !button
+    ) {
       return;
     }
 
-    button.dataset.processing = "true";
-    button.disabled = true;
-    button.textContent = "Checking...";
+
+    if (
+      button.dataset.processing ===
+      "true"
+    ) {
+      return;
+    }
+
+
+    button.dataset.processing =
+      "true";
+
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Checking...";
+
 
     haptic("light");
 
+
     try {
-      /*
-        Open task URL first if available.
-      */
 
       if (task.url) {
+
         try {
+
           if (tg?.openLink) {
-            tg.openLink(task.url);
+
+            tg.openLink(
+              task.url
+            );
+
           } else {
+
             window.open(
               task.url,
               "_blank",
               "noopener,noreferrer"
             );
           }
+
         } catch (_) {}
       }
 
-      /*
-        Small delay gives the user time to complete
-        an external task before calling backend.
-      */
 
       await delay(
-        task.url ? 1200 : 300
+        task.url
+          ? 1200
+          : 300
       );
+
 
       const data =
         await apiRequest(
-          `/tasks/${encodeURIComponent(task.id)}/complete`,
+          `/tasks/${encodeURIComponent(
+            task.id
+          )}/complete`,
           {
             method: "POST",
             body: JSON.stringify({})
           }
         );
 
-      if (data?.balance_qexc !== undefined) {
+
+      if (
+        data?.balance_qexc !==
+        undefined
+      ) {
+
         state.wallet.balance_qexc =
-          Number(data.balance_qexc);
+          Number(
+            data.balance_qexc
+          );
       }
 
-      /*
-        IMPORTANT:
-        The backend must enforce task completion
-        and prevent duplicate rewards.
-        Frontend alone cannot provide anti-fraud.
-      */
 
-      button.textContent = "Completed";
-      button.classList.add("success");
+      button.textContent =
+        "Completed";
 
-      showToast(
-        `Task complete! +${formatNumber(task.reward_qexc)} QEXC`,
+
+      button.classList.add(
         "success"
       );
 
+
+      showToast(
+        `Task complete! +${formatNumber(
+          task.reward_qexc
+        )} QEXC`,
+        "success"
+      );
+
+
       haptic("success");
+
 
       await Promise.all([
         loadWallet(),
@@ -746,17 +1442,31 @@
         loadTasks()
       ]);
 
-    } catch (error) {
-      console.error("Task completion error:", error);
 
-      button.disabled = false;
-      button.dataset.processing = "false";
-      button.textContent = "Start";
+    } catch (error) {
+
+      console.error(
+        "Task completion error:",
+        error
+      );
+
+
+      button.disabled =
+        false;
+
+      button.dataset.processing =
+        "false";
+
+      button.textContent =
+        "Start";
+
 
       showToast(
-        error.message || "Task complete করা যায়নি",
+        error.message ||
+        "Task complete করা যায়নি",
         "error"
       );
+
 
       haptic("error");
     }
@@ -765,56 +1475,194 @@
 
   /* =========================
      DAILY BONUS
-  ========================= */
+     ========================= */
 
   async function claimDailyBonus() {
-    const buttons =
-      $$('[data-action="daily-bonus"]');
 
-    buttons.forEach(button => {
-      button.disabled = true;
-      button.textContent = "Checking...";
-    });
+    /*
+      Local protection:
+      If already claimed, don't even
+      call the backend again.
+    */
 
-    try {
-      const data =
-        await apiRequest("/rewards/daily", {
-          method: "POST",
-          body: JSON.stringify({})
-        });
+    if (
+      state.dailyBonus.claimed &&
+      Date.now() <
+        state.dailyBonus.nextClaimAt
+    ) {
 
-      if (data?.balance_qexc !== undefined) {
-        state.wallet.balance_qexc =
-          Number(data.balance_qexc);
-      }
+      updateDailyBonusUI();
 
       showToast(
-        "Daily bonus claimed successfully!",
+        `পরের Daily Bonus পাবেন ${formatCountdown(
+          state.dailyBonus.nextClaimAt -
+          Date.now()
+        )} পরে`,
+        "warning"
+      );
+
+      haptic("warning");
+
+      return;
+    }
+
+
+    const buttons =
+      getDailyButtons();
+
+
+    buttons.forEach(
+      button => {
+
+        button.disabled =
+          true;
+
+        button.textContent =
+          "Checking...";
+      }
+    );
+
+
+    try {
+
+      const data =
+        await apiRequest(
+          "/rewards/daily",
+          {
+            method: "POST",
+            body: JSON.stringify({})
+          }
+        );
+
+
+      if (
+        data?.balance_qexc !==
+        undefined
+      ) {
+
+        state.wallet.balance_qexc =
+          Number(
+            data.balance_qexc
+          );
+      }
+
+
+      /*
+        IMPORTANT:
+        Successful backend response means
+        bonus was actually granted.
+
+        Start countdown until next
+        Bangladesh calendar day.
+      */
+
+      markDailyBonusClaimed();
+
+
+      showToast(
+        `Daily Bonus পেয়েছেন! +${DAILY_BONUS_QEXC} QEXC`,
         "success"
       );
 
+
       haptic("success");
+
 
       await Promise.all([
         loadWallet(),
         loadTransactions()
       ]);
 
-    } catch (error) {
-      console.error("Daily bonus error:", error);
 
-      showToast(
-        error.message || "আজকের bonus নেওয়া যায়নি",
-        "error"
+      updateDailyBonusUI();
+
+
+    } catch (error) {
+
+      console.error(
+        "Daily bonus error:",
+        error
       );
+
+
+      /*
+        Backend says already claimed.
+        We don't give another reward.
+
+        Start local timer until next
+        Bangladesh midnight.
+      */
+
+      const message =
+        String(
+          error.message || ""
+        ).toLowerCase();
+
+
+      if (
+        message.includes(
+          "already"
+        ) ||
+        message.includes(
+          "claimed"
+        ) ||
+        message.includes(
+          "today"
+        ) ||
+        message.includes(
+          "bonus"
+        )
+      ) {
+
+        state.dailyBonus = {
+          claimed: true,
+          nextClaimAt:
+            getNextBangladeshMidnight()
+        };
+
+
+        saveDailyBonusState();
+
+        updateDailyBonusUI();
+
+
+        showToast(
+          `আজকের bonus নেওয়া হয়েছে। আবার পাবেন ${formatCountdown(
+            state.dailyBonus.nextClaimAt -
+            Date.now()
+          )} পরে`,
+          "warning"
+        );
+
+      } else {
+
+        showToast(
+          error.message ||
+          "আজকের bonus নেওয়া যায়নি",
+          "error"
+        );
+
+
+        /*
+          Restore button only if
+          there was an actual error.
+        */
+
+        buttons.forEach(
+          button => {
+
+            button.disabled =
+              false;
+
+            button.textContent =
+              "Daily Bonus নিন";
+          }
+        );
+      }
+
 
       haptic("error");
 
-    } finally {
-      buttons.forEach(button => {
-        button.disabled = false;
-        button.textContent = "Claim Bonus";
-      });
     }
   }
 
@@ -824,85 +1672,90 @@
      ========================= */
 
   async function watchAd() {
+
+    /*
+      VERY IMPORTANT:
+
+      বর্তমানে QEXUS-এ কোনো real rewarded
+      ad network connected নেই।
+
+      তাই frontend থেকে সরাসরি
+      /rewards/ad call করা হবে না।
+
+      এতে user শুধু button চাপেই
+      +3 QEXC পেয়ে যাবে না।
+    */
+
     const button =
       $('[data-action="watch-ad"]');
+
 
     const status =
       $("#adStatus");
 
-    if (button) {
-      button.disabled = true;
-      button.textContent = "Preparing...";
+
+    if (
+      state.ad.processing
+    ) {
+      return;
     }
+
+
+    state.ad.processing =
+      true;
+
+
+    if (button) {
+
+      button.disabled =
+        true;
+
+      button.textContent =
+        "Ad unavailable";
+    }
+
 
     if (status) {
+
       status.textContent =
-        "Ad প্রস্তুত করা হচ্ছে...";
+        "এই মুহূর্তে কোনো rewarded ad available নেই।";
     }
 
-    try {
-      /*
-        Current backend endpoint is TEST ONLY.
 
-        Production:
-        Real rewarded-ad SDK + server-side
-        verification must be added.
-      */
+    showToast(
+      "এখনো Rewarded Ad চালু করা হয়নি। তাই reward দেওয়া হবে না।",
+      "warning"
+    );
 
-      if (status) {
-        status.textContent =
-          "Reward যাচাই করা হচ্ছে...";
-      }
 
-      const data =
-        await apiRequest("/rewards/ad", {
-          method: "POST",
-          body: JSON.stringify({})
-        });
+    haptic("warning");
 
-      if (data?.balance_qexc !== undefined) {
-        state.wallet.balance_qexc =
-          Number(data.balance_qexc);
-      }
 
-      showToast(
-        "Ad reward যোগ হয়েছে!",
-        "success"
-      );
+    /*
+      NO API CALL HERE.
 
-      haptic("success");
+      Therefore:
+      Button click = 0 QEXC
+      Fake reward = impossible
+    */
 
-      await Promise.all([
-        loadWallet(),
-        loadTransactions()
-      ]);
 
-      if (status) {
-        status.textContent =
-          "Reward সফলভাবে যোগ হয়েছে";
-      }
+    setTimeout(() => {
 
-    } catch (error) {
-      console.error("Ad reward error:", error);
+      state.ad.processing =
+        false;
 
-      if (status) {
-        status.textContent =
-          "এই মুহূর্তে ad reward unavailable";
-      }
 
-      showToast(
-        error.message || "Ad reward পাওয়া যায়নি",
-        "error"
-      );
-
-      haptic("error");
-
-    } finally {
       if (button) {
-        button.disabled = false;
-        button.textContent = "Watch Ad";
+
+        button.disabled =
+          false;
+
+        button.textContent =
+          "বিজ্ঞাপন দেখুন";
       }
-    }
+
+    }, 1200);
   }
 
 
@@ -911,86 +1764,162 @@
   ========================= */
 
   function openWithdrawModal() {
-    const modal = $("#withdrawModal");
 
-    if (!modal) return;
+    const modal =
+      $("#withdrawModal");
+
+
+    if (!modal) {
+      return;
+    }
+
 
     renderWallet();
 
+
     const available =
-      qexcToBDT(state.wallet.balance_qexc);
+      qexcToBDT(
+        state.wallet.balance_qexc
+      );
+
 
     if ($("#withdrawAvailable")) {
-      $("#withdrawAvailable").textContent =
-        formatBDT(available);
+
+      $("#withdrawAvailable")
+        .textContent =
+        formatBDT(
+          available
+        );
     }
+
 
     if ($("#withdrawAmount")) {
-      $("#withdrawAmount").value = "";
+
+      $("#withdrawAmount")
+        .value = "";
     }
+
 
     if ($("#withdrawNumber")) {
-      $("#withdrawNumber").value = "";
+
+      $("#withdrawNumber")
+        .value = "";
     }
 
-    state.selectedWithdrawMethod = "bKash";
 
-    $$(".method-btn").forEach(button => {
-      button.classList.toggle(
-        "active",
-        button.dataset.method === "bKash"
-      );
-    });
+    state.selectedWithdrawMethod =
+      "bKash";
 
-    modal.classList.add("show");
-    document.body.classList.add("modal-open");
+
+    $$(".method-btn")
+      .forEach(button => {
+
+        button.classList.toggle(
+          "active",
+          button.dataset.method ===
+          "bKash"
+        );
+      });
+
+
+    modal.classList.add(
+      "show"
+    );
+
+
+    document.body.classList.add(
+      "modal-open"
+    );
+
 
     haptic("light");
   }
 
 
   function closeWithdrawModal() {
-    const modal = $("#withdrawModal");
 
-    if (!modal) return;
-
-    modal.classList.remove("show");
-    document.body.classList.remove("modal-open");
-  }
+    const modal =
+      $("#withdrawModal");
 
 
-  function selectWithdrawMethod(method) {
-    if (!["bKash", "Nagad"].includes(method)) {
+    if (!modal) {
       return;
     }
 
-    state.selectedWithdrawMethod = method;
 
-    $$(".method-btn").forEach(button => {
-      button.classList.toggle(
-        "active",
-        button.dataset.method === method
-      );
-    });
+    modal.classList.remove(
+      "show"
+    );
+
+
+    document.body.classList.remove(
+      "modal-open"
+    );
+  }
+
+
+  function selectWithdrawMethod(
+    method
+  ) {
+
+    if (
+      ![
+        "bKash",
+        "Nagad"
+      ].includes(method)
+    ) {
+      return;
+    }
+
+
+    state.selectedWithdrawMethod =
+      method;
+
+
+    $$(".method-btn")
+      .forEach(button => {
+
+        button.classList.toggle(
+          "active",
+          button.dataset.method ===
+          method
+        );
+      });
+
 
     haptic("light");
   }
 
 
   function updateWithdrawButton() {
+
     const amountInput =
       $("#withdrawAmount");
+
 
     const button =
       $("#withdrawSubmit");
 
-    if (!amountInput || !button) return;
+
+    if (
+      !amountInput ||
+      !button
+    ) {
+      return;
+    }
+
 
     const amount =
-      Number(amountInput.value || 0);
+      Number(
+        amountInput.value || 0
+      );
+
 
     const available =
-      qexcToBDT(state.wallet.balance_qexc);
+      qexcToBDT(
+        state.wallet.balance_qexc
+      );
+
 
     button.disabled =
       amount < 100 ||
@@ -999,100 +1928,152 @@
 
 
   async function submitWithdrawal() {
+
     const amountInput =
       $("#withdrawAmount");
+
 
     const numberInput =
       $("#withdrawNumber");
 
+
     const submitButton =
       $("#withdrawSubmit");
 
-    if (!amountInput || !numberInput) {
+
+    if (
+      !amountInput ||
+      !numberInput
+    ) {
       return;
     }
 
+
     const amount =
-      Number(amountInput.value || 0);
+      Number(
+        amountInput.value || 0
+      );
+
 
     const number =
-      String(numberInput.value || "")
-        .replace(/\s+/g, "");
+      String(
+        numberInput.value || ""
+      )
+        .replace(
+          /\s+/g,
+          ""
+        );
+
 
     const method =
       state.selectedWithdrawMethod;
 
 
-    /* Minimum */
+    if (
+      !Number.isFinite(amount) ||
+      amount < 100
+    ) {
 
-    if (!Number.isFinite(amount) || amount < 100) {
       showToast(
         "Minimum withdrawal ৳100",
         "warning"
       );
+
       return;
     }
 
 
-    /* Balance */
-
     const available =
-      qexcToBDT(state.wallet.balance_qexc);
+      qexcToBDT(
+        state.wallet.balance_qexc
+      );
 
-    if (amount > available) {
+
+    if (
+      amount > available
+    ) {
+
       showToast(
         "আপনার balance যথেষ্ট নয়",
         "warning"
       );
+
       return;
     }
 
 
-    /* Bangladesh mobile */
+    if (
+      !/^01[3-9]\d{8}$/.test(
+        number
+      )
+    ) {
 
-    if (!/^01[3-9]\d{8}$/.test(number)) {
       showToast(
         "সঠিক ১১ সংখ্যার bKash/Nagad নম্বর দিন",
         "warning"
       );
+
       return;
     }
 
 
-    if (!["bKash", "Nagad"].includes(method)) {
+    if (
+      ![
+        "bKash",
+        "Nagad"
+      ].includes(method)
+    ) {
+
       showToast(
         "Payment method নির্বাচন করুন",
         "warning"
       );
+
       return;
     }
 
 
     if (submitButton) {
-      submitButton.disabled = true;
+
+      submitButton.disabled =
+        true;
+
       submitButton.textContent =
         "Submitting...";
     }
 
+
     try {
+
       const data =
-        await apiRequest("/withdrawals", {
-          method: "POST",
-          body: JSON.stringify({
-            amount_bdt: amount,
-            method,
-            account_number: number
-          })
-        });
+        await apiRequest(
+          "/withdrawals",
+          {
+            method: "POST",
+
+            body: JSON.stringify({
+              amount_bdt:
+                amount,
+
+              method:
+                method,
+
+              account_number:
+                number
+            })
+          }
+        );
 
 
-      /*
-        Backend locks/deducts balance.
-      */
+      if (
+        data?.balance_qexc !==
+        undefined
+      ) {
 
-      if (data?.balance_qexc !== undefined) {
         state.wallet.balance_qexc =
-          Number(data.balance_qexc);
+          Number(
+            data.balance_qexc
+          );
       }
 
 
@@ -1101,20 +2082,26 @@
         "success"
       );
 
+
       haptic("success");
 
+
       closeWithdrawModal();
+
 
       await Promise.all([
         loadWallet(),
         loadTransactions()
       ]);
 
+
     } catch (error) {
+
       console.error(
         "Withdrawal error:",
         error
       );
+
 
       showToast(
         error.message ||
@@ -1122,14 +2109,21 @@
         "error"
       );
 
+
       haptic("error");
 
+
     } finally {
+
       if (submitButton) {
-        submitButton.disabled = false;
+
+        submitButton.disabled =
+          false;
+
         submitButton.textContent =
           "Request Withdrawal";
       }
+
 
       updateWithdrawButton();
     }
@@ -1138,34 +2132,47 @@
 
   /* =========================
      REFERRAL
-  ========================= */
+     ========================= */
 
   function buildReferralLink() {
+
     if (!state.user) {
       return "";
     }
 
+
     const botUsername =
       "Qexus_Official_Bot";
+
 
     const telegramId =
       state.user.telegram_id ||
       state.user.id;
 
-    if (!telegramId) return "";
+
+    if (!telegramId) {
+      return "";
+    }
+
 
     return `https://t.me/${botUsername}?start=ref_${telegramId}`;
   }
 
 
   function renderReferral() {
+
     const input =
       $("#referralLink");
 
-    if (!input) return;
+
+    if (!input) {
+      return;
+    }
+
 
     const link =
       buildReferralLink();
+
 
     input.value =
       link ||
@@ -1174,35 +2181,52 @@
 
 
   async function copyReferral() {
+
     const link =
       buildReferralLink();
 
+
     if (!link) {
+
       showToast(
         "আগে Telegram login করুন",
         "warning"
       );
+
       return;
     }
 
+
     try {
-      await navigator.clipboard.writeText(link);
+
+      await navigator.clipboard
+        .writeText(link);
+
 
       showToast(
         "Referral link copied!",
         "success"
       );
 
+
       haptic("success");
 
+
     } catch (_) {
+
       const input =
         $("#referralLink");
 
+
       if (input) {
+
         input.select();
-        document.execCommand("copy");
+
+        document.execCommand(
+          "copy"
+        );
       }
+
 
       showToast(
         "Referral link copied!",
@@ -1213,77 +2237,128 @@
 
 
   async function shareReferral() {
+
     const link =
       buildReferralLink();
 
+
     if (!link) {
+
       showToast(
         "Referral link পাওয়া যায়নি",
         "warning"
       );
+
       return;
     }
+
 
     const text =
       `QEXUS-এ join করুন এবং QEXC earn করুন!\n\n${link}`;
 
-    try {
-      if (tg?.openTelegramLink) {
-        const shareUrl =
-          `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("QEXUS-এ join করুন এবং QEXC earn করুন!")}`;
 
-        tg.openTelegramLink(shareUrl);
+    try {
+
+      if (
+        tg?.openTelegramLink
+      ) {
+
+        const shareUrl =
+          `https://t.me/share/url?url=${encodeURIComponent(
+            link
+          )}&text=${encodeURIComponent(
+            "QEXUS-এ join করুন এবং QEXC earn করুন!"
+          )}`;
+
+
+        tg.openTelegramLink(
+          shareUrl
+        );
+
         return;
       }
 
-      if (navigator.share) {
+
+      if (
+        navigator.share
+      ) {
+
         await navigator.share({
-          title: "QEXUS",
-          text,
-          url: link
+          title:
+            "QEXUS",
+
+          text:
+            text,
+
+          url:
+            link
         });
 
         return;
       }
 
-      await navigator.clipboard.writeText(link);
+
+      await navigator.clipboard
+        .writeText(link);
+
 
       showToast(
         "Referral link copied!",
         "success"
       );
 
+
     } catch (error) {
-      console.log("Share cancelled:", error);
+
+      console.log(
+        "Share cancelled:",
+        error
+      );
     }
   }
 
 
   /* =========================
      NAVIGATION
-  ========================= */
+     ========================= */
 
   function navigate(page) {
-    if (!page) return;
+
+    if (!page) {
+      return;
+    }
+
 
     const pages =
       $$(".page");
 
-    pages.forEach(section => {
-      section.classList.toggle(
-        "active",
-        section.dataset.page === page ||
-        section.id === page
-      );
-    });
+
+    pages.forEach(
+      section => {
+
+        section.classList.toggle(
+          "active",
+
+          section.dataset.page ===
+            page ||
+
+          section.id ===
+            page
+        );
+      }
+    );
 
 
-    $$(".nav-item").forEach(item => {
-      item.classList.toggle(
-        "active",
-        item.dataset.page === page
-      );
-    });
+    $$(".nav-item")
+      .forEach(item => {
+
+        item.classList.toggle(
+          "active",
+
+          item.dataset.page ===
+          page
+        );
+      });
 
 
     window.scrollTo({
@@ -1293,17 +2368,29 @@
 
 
     if (page === "wallet") {
+
       loadWallet();
       loadTransactions();
     }
 
+
     if (page === "tasks") {
+
       loadTasks();
     }
 
+
     if (page === "profile") {
+
       renderReferral();
     }
+
+
+    if (page === "earn") {
+
+      updateDailyBonusUI();
+    }
+
 
     haptic("light");
   }
@@ -1313,8 +2400,13 @@
      LOADING
   ========================= */
 
-  function setLoadingState(isLoading) {
-    state.loading = isLoading;
+  function setLoadingState(
+    isLoading
+  ) {
+
+    state.loading =
+      isLoading;
+
 
     document.body.classList.toggle(
       "is-loading",
@@ -1324,20 +2416,33 @@
 
 
   /* =========================
-     MODAL EVENTS
+     MODAL
   ========================= */
 
   function setupModal() {
+
     const modal =
       $("#withdrawModal");
 
-    if (!modal) return;
 
-    modal.addEventListener("click", event => {
-      if (event.target === modal) {
-        closeWithdrawModal();
+    if (!modal) {
+      return;
+    }
+
+
+    modal.addEventListener(
+      "click",
+      event => {
+
+        if (
+          event.target ===
+          modal
+        ) {
+
+          closeWithdrawModal();
+        }
       }
-    });
+    );
 
 
     const closeButton =
@@ -1345,7 +2450,9 @@
         '[data-action="close-withdraw"]'
       );
 
+
     if (closeButton) {
+
       closeButton.addEventListener(
         "click",
         closeWithdrawModal
@@ -1353,22 +2460,27 @@
     }
 
 
-    $$(".method-btn").forEach(button => {
-      button.addEventListener(
-        "click",
-        () => {
-          selectWithdrawMethod(
-            button.dataset.method
-          );
-        }
-      );
-    });
+    $$(".method-btn")
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            selectWithdrawMethod(
+              button.dataset.method
+            );
+          }
+        );
+      });
 
 
     const amountInput =
       $("#withdrawAmount");
 
+
     if (amountInput) {
+
       amountInput.addEventListener(
         "input",
         updateWithdrawButton
@@ -1379,7 +2491,9 @@
     const submitButton =
       $("#withdrawSubmit");
 
+
     if (submitButton) {
+
       submitButton.addEventListener(
         "click",
         submitWithdrawal
@@ -1389,78 +2503,122 @@
 
 
   /* =========================
-     GLOBAL CLICK ACTIONS
+     ACTIONS
   ========================= */
 
   function setupActions() {
-    document.addEventListener("click", event => {
-      const target =
-        event.target.closest("[data-action]");
 
-      if (!target) return;
+    document.addEventListener(
+      "click",
+      event => {
 
-      const action =
-        target.dataset.action;
+        const target =
+          event.target.closest(
+            "[data-action]"
+          );
 
-      switch (action) {
 
-        case "navigate":
-          navigate(target.dataset.page);
-          break;
+        if (!target) {
+          return;
+        }
 
-        case "withdraw":
-          openWithdrawModal();
-          break;
 
-        case "daily-bonus":
-          claimDailyBonus();
-          break;
+        const action =
+          target.dataset.action;
 
-        case "watch-ad":
-          watchAd();
-          break;
 
-        case "copy-referral":
-          copyReferral();
-          break;
+        switch (action) {
 
-        case "share-referral":
-          shareReferral();
-          break;
+          case "navigate":
 
-        case "close-withdraw":
-          closeWithdrawModal();
-          break;
+            navigate(
+              target.dataset.page
+            );
 
-        case "refresh":
-          refreshApp();
-          break;
+            break;
+
+
+          case "withdraw":
+
+            openWithdrawModal();
+
+            break;
+
+
+          case "daily-bonus":
+
+            claimDailyBonus();
+
+            break;
+
+
+          case "watch-ad":
+
+            watchAd();
+
+            break;
+
+
+          case "copy-referral":
+
+            copyReferral();
+
+            break;
+
+
+          case "share-referral":
+
+            shareReferral();
+
+            break;
+
+
+          case "close-withdraw":
+
+            closeWithdrawModal();
+
+            break;
+
+
+          case "refresh":
+
+            refreshApp();
+
+            break;
+        }
       }
-    });
+    );
 
 
-    /*
-      Bottom navigation
-    */
+    $$(".nav-item")
+      .forEach(item => {
 
-    $$(".nav-item").forEach(item => {
-      item.addEventListener("click", () => {
-        navigate(item.dataset.page);
+        item.addEventListener(
+          "click",
+          () => {
+
+            navigate(
+              item.dataset.page
+            );
+          }
+        );
       });
-    });
   }
 
 
   /* =========================
-     REFRESH APP
+     REFRESH
   ========================= */
 
   async function refreshApp() {
+
     try {
+
       showToast(
         "Refreshing...",
         "default"
       );
+
 
       await Promise.all([
         authenticate(),
@@ -1468,52 +2626,58 @@
         loadTasks()
       ]);
 
+
       renderReferral();
+      updateDailyBonusUI();
+
 
     } catch (error) {
-      console.error(error);
+
+      console.error(
+        error
+      );
     }
   }
 
 
   /* =========================
-     VISIBILITY REFRESH
+     VISIBILITY
   ========================= */
 
   let lastVisibleRefresh = 0;
+
 
   document.addEventListener(
     "visibilitychange",
     () => {
 
       if (
-        document.visibilityState !== "visible"
+        document.visibilityState !==
+        "visible"
       ) {
         return;
       }
 
+
+      updateDailyBonusUI();
+
+
       const now =
         Date.now();
 
-      /*
-        Prevent repeated API calls when Telegram
-        fires visibility events rapidly.
-      */
 
       if (
-        now - lastVisibleRefresh <
+        now -
+          lastVisibleRefresh <
         5000
       ) {
         return;
       }
 
-      lastVisibleRefresh = now;
 
-      /*
-        Refresh server state when user returns.
-        This ensures the frontend doesn't rely on
-        old local wallet data.
-      */
+      lastVisibleRefresh =
+        now;
+
 
       loadWallet();
       loadTransactions();
@@ -1523,61 +2687,50 @@
 
 
   /* =========================
-     BACK BUTTON
+     TELEGRAM BACK
   ========================= */
 
   function setupTelegramBackButton() {
-    if (!tg?.BackButton) return;
 
-    tg.BackButton.onClick(() => {
-      navigate("home");
-      tg.BackButton.hide();
-    });
-  }
+    if (!tg?.BackButton) {
+      return;
+    }
 
 
-  /* =========================
-     UTILITY
-  ========================= */
+    tg.BackButton.onClick(
+      () => {
 
-  function delay(ms) {
-    return new Promise(resolve =>
-      setTimeout(resolve, ms)
+        navigate("home");
+
+        tg.BackButton.hide();
+      }
     );
   }
 
 
   /* =========================
-     INITIAL LOAD
+     BOOT
   ========================= */
 
   async function boot() {
+
     initTelegram();
 
     setupActions();
     setupModal();
     setupTelegramBackButton();
 
-    /*
-      Home first
-    */
-
     navigate("home");
 
-    /*
-      Authentication first.
-    */
 
     const authenticated =
       await authenticate();
+
 
     if (!authenticated) {
       return;
     }
 
-    /*
-      Load all server data.
-    */
 
     await Promise.all([
       loadWallet(),
@@ -1585,7 +2738,12 @@
       loadTasks()
     ]);
 
+
     renderReferral();
+
+    loadDailyBonusState();
+    startDailyBonusTimer();
+
 
     console.log(
       "QEXUS initialized successfully."
@@ -1595,22 +2753,34 @@
 
   /* =========================
      GLOBAL FUNCTIONS
-     ========================= */
+  ========================= */
 
-  /*
-    These are kept global so old HTML
-    onclick attributes continue to work.
-  */
+  window.navigate =
+    navigate;
 
-  window.navigate = navigate;
-  window.watchAd = watchAd;
-  window.claimDailyBonus = claimDailyBonus;
-  window.openWithdrawModal = openWithdrawModal;
-  window.closeWithdrawModal = closeWithdrawModal;
-  window.submitWithdrawal = submitWithdrawal;
-  window.copyReferral = copyReferral;
-  window.shareReferral = shareReferral;
-  window.refreshApp = refreshApp;
+  window.watchAd =
+    watchAd;
+
+  window.claimDailyBonus =
+    claimDailyBonus;
+
+  window.openWithdrawModal =
+    openWithdrawModal;
+
+  window.closeWithdrawModal =
+    closeWithdrawModal;
+
+  window.submitWithdrawal =
+    submitWithdrawal;
+
+  window.copyReferral =
+    copyReferral;
+
+  window.shareReferral =
+    shareReferral;
+
+  window.refreshApp =
+    refreshApp;
 
 
   /* =========================
@@ -1618,14 +2788,20 @@
   ========================= */
 
   if (
-    document.readyState === "loading"
+    document.readyState ===
+    "loading"
   ) {
+
     document.addEventListener(
       "DOMContentLoaded",
       boot,
-      { once: true }
+      {
+        once: true
+      }
     );
+
   } else {
+
     boot();
   }
 
