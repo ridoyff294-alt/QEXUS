@@ -2,6 +2,7 @@
 <html lang="bn">
 <head>
   <meta charset="UTF-8">
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
@@ -10,26 +11,39 @@
   <title>QEXUS</title>
 
   <meta name="theme-color" content="#ffffff">
-  <meta name="description" content="QEXUS rewards platform">
+  <meta
+    name="description"
+    content="QEXUS rewards platform"
+  >
 
+  <!-- Telegram Mini App -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
+  <!-- AdsGram Rewarded Ads -->
+  <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
+  <!-- QEXUS CSS -->
   <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
-  <!-- GLOBAL LOADER -->
+  <!-- ================= GLOBAL LOADER ================= -->
+
   <div id="globalLoader" class="global-loader">
     <div class="loader-spinner"></div>
-    <div class="loader-text">QEXUS লোড হচ্ছে...</div>
+    <div class="loader-text">
+      QEXUS লোড হচ্ছে...
+    </div>
   </div>
 
 
-  <!-- APP -->
+  <!-- ================= APP ================= -->
+
   <div id="app" class="app">
 
-    <!-- TOP BAR -->
+    <!-- ================= TOP BAR ================= -->
+
     <header class="topbar">
 
       <div class="brand">
@@ -39,11 +53,17 @@
         </div>
 
         <div>
-          <div class="brand-name">QEXUS</div>
-          <div class="brand-subtitle">Rewards Platform</div>
+          <div class="brand-name">
+            QEXUS
+          </div>
+
+          <div class="brand-subtitle">
+            Rewards Platform
+          </div>
         </div>
 
       </div>
+
 
       <div class="top-actions">
 
@@ -52,20 +72,29 @@
           class="icon-button"
           type="button"
           aria-label="Notifications"
+          onclick="showNotifications()"
         >
           <span>♢</span>
-          <span id="notificationBadge" class="notification-badge hidden">
+
+          <span
+            id="notificationBadge"
+            class="notification-badge hidden"
+          >
             0
           </span>
         </button>
+
 
         <button
           id="topAvatar"
           class="avatar"
           type="button"
           onclick="navigate('profile')"
+          aria-label="Profile"
         >
-          <span id="topAvatarText">U</span>
+          <span id="topAvatarText">
+            U
+          </span>
         </button>
 
       </div>
@@ -73,13 +102,17 @@
     </header>
 
 
-    <!-- MAIN -->
+    <!-- ================= MAIN ================= -->
+
     <main>
 
 
       <!-- ================= HOME ================= -->
 
-      <section id="page-home" class="page active">
+      <section
+        id="page-home"
+        class="page active"
+      >
 
         <div class="page-intro">
 
@@ -88,18 +121,21 @@
           </div>
 
           <h1 class="welcome-title">
-            হ্যালো, <span id="userName">User</span>
+            হ্যালো,
+            <span id="userName">User</span>
           </h1>
 
         </div>
 
 
         <!-- BALANCE -->
+
         <div class="balance-card">
 
           <div class="balance-card-top">
 
             <div>
+
               <div class="balance-label">
                 Available Balance
               </div>
@@ -109,9 +145,12 @@
               </div>
 
               <div class="balance-qexc">
-                <span id="balanceQEXC">0</span> QEXC
+                <span id="balanceQEXC">0</span>
+                QEXC
               </div>
+
             </div>
+
 
             <div class="balance-coin">
               Q
@@ -130,17 +169,28 @@
               type="button"
               onclick="navigate('earn')"
             >
-              <span class="action-icon green">+</span>
-              <span>Earn</span>
+              <span class="action-icon green">
+                +
+              </span>
+
+              <span>
+                Earn
+              </span>
             </button>
+
 
             <button
               class="balance-action"
               type="button"
               onclick="openWithdrawModal()"
             >
-              <span class="action-icon blue">↗</span>
-              <span>Withdraw</span>
+              <span class="action-icon blue">
+                ↗
+              </span>
+
+              <span>
+                Withdraw
+              </span>
             </button>
 
           </div>
@@ -149,9 +199,11 @@
 
 
         <!-- QUICK ACTIONS -->
+
         <div class="section-header">
 
           <div>
+
             <div class="section-kicker">
               EXPLORE
             </div>
@@ -159,6 +211,7 @@
             <div class="section-title">
               Quick Actions
             </div>
+
           </div>
 
         </div>
@@ -171,9 +224,17 @@
             type="button"
             onclick="navigate('earn')"
           >
-            <span class="quick-icon green">▶</span>
-            <span class="quick-label">Earn</span>
-            <span class="quick-arrow">›</span>
+            <span class="quick-icon green">
+              ▶
+            </span>
+
+            <span class="quick-label">
+              Earn
+            </span>
+
+            <span class="quick-arrow">
+              ›
+            </span>
           </button>
 
 
@@ -182,9 +243,17 @@
             type="button"
             onclick="navigate('tasks')"
           >
-            <span class="quick-icon blue">✓</span>
-            <span class="quick-label">Tasks</span>
-            <span class="quick-arrow">›</span>
+            <span class="quick-icon blue">
+              ✓
+            </span>
+
+            <span class="quick-label">
+              Tasks
+            </span>
+
+            <span class="quick-arrow">
+              ›
+            </span>
           </button>
 
 
@@ -193,9 +262,17 @@
             type="button"
             onclick="navigate('wallet')"
           >
-            <span class="quick-icon purple">৳</span>
-            <span class="quick-label">Wallet</span>
-            <span class="quick-arrow">›</span>
+            <span class="quick-icon purple">
+              ৳
+            </span>
+
+            <span class="quick-label">
+              Wallet
+            </span>
+
+            <span class="quick-arrow">
+              ›
+            </span>
           </button>
 
 
@@ -204,15 +281,24 @@
             type="button"
             onclick="navigate('profile')"
           >
-            <span class="quick-icon orange">●</span>
-            <span class="quick-label">Profile</span>
-            <span class="quick-arrow">›</span>
+            <span class="quick-icon orange">
+              ●
+            </span>
+
+            <span class="quick-label">
+              Profile
+            </span>
+
+            <span class="quick-arrow">
+              ›
+            </span>
           </button>
 
         </div>
 
 
         <!-- DAILY STATUS -->
+
         <div class="mini-status-card">
 
           <div class="mini-status-icon">
@@ -234,6 +320,7 @@
 
           </div>
 
+
           <button
             type="button"
             class="section-link"
@@ -246,9 +333,11 @@
 
 
         <!-- RECENT ACTIVITY -->
+
         <div class="section-header">
 
           <div>
+
             <div class="section-kicker">
               ACTIVITY
             </div>
@@ -256,7 +345,9 @@
             <div class="section-title">
               Recent Activity
             </div>
+
           </div>
+
 
           <button
             type="button"
@@ -298,7 +389,10 @@
 
       <!-- ================= EARN ================= -->
 
-      <section id="page-earn" class="page">
+      <section
+        id="page-earn"
+        class="page"
+      >
 
         <div class="page-heading">
 
@@ -416,7 +510,7 @@
             </div>
 
             <div id="adStatus">
-              বিজ্ঞাপন বর্তমানে unavailable
+              বিজ্ঞাপন প্রস্তুত হচ্ছে...
             </div>
 
           </div>
@@ -458,6 +552,7 @@
 
           </div>
 
+
           <div
             id="taskCount"
             class="task-count"
@@ -466,6 +561,7 @@
           </div>
 
         </div>
+
 
         <button
           type="button"
@@ -481,7 +577,10 @@
 
       <!-- ================= TASKS ================= -->
 
-      <section id="page-tasks" class="page">
+      <section
+        id="page-tasks"
+        class="page"
+      >
 
         <div class="page-heading">
 
@@ -525,7 +624,10 @@
 
       <!-- ================= LEADERBOARD ================= -->
 
-      <section id="page-leaderboard" class="page">
+      <section
+        id="page-leaderboard"
+        class="page"
+      >
 
         <div class="page-heading">
 
@@ -551,6 +653,7 @@
             All Time
           </button>
 
+
           <button
             type="button"
             class="leaderboard-tab"
@@ -559,6 +662,7 @@
           >
             Monthly
           </button>
+
 
           <button
             type="button"
@@ -611,7 +715,10 @@
 
       <!-- ================= WALLET ================= -->
 
-      <section id="page-wallet" class="page">
+      <section
+        id="page-wallet"
+        class="page"
+      >
 
         <div class="page-heading">
 
@@ -632,12 +739,14 @@
             Available Balance
           </div>
 
+
           <div
             id="walletQEXC"
             class="wallet-qexc"
           >
             0 QEXC
           </div>
+
 
           <div
             id="walletBalance"
@@ -743,7 +852,10 @@
 
       <!-- ================= PROFILE ================= -->
 
-      <section id="page-profile" class="page">
+      <section
+        id="page-profile"
+        class="page"
+      >
 
         <div class="profile-header">
 
@@ -754,12 +866,14 @@
             U
           </div>
 
+
           <div
             id="profileName"
             class="profile-name"
           >
             User
           </div>
+
 
           <div
             id="profileUsername"
@@ -843,6 +957,7 @@
               Copy Link
             </button>
 
+
             <button
               type="button"
               class="secondary-btn"
@@ -861,6 +976,7 @@
         <div class="section-header">
 
           <div>
+
             <div class="section-kicker">
               ACCOUNT
             </div>
@@ -868,6 +984,7 @@
             <div class="section-title">
               Settings
             </div>
+
           </div>
 
         </div>
@@ -997,8 +1114,13 @@
         data-page="home"
         onclick="navigate('home')"
       >
-        <span class="nav-icon">⌂</span>
-        <span>Home</span>
+        <span class="nav-icon">
+          ⌂
+        </span>
+
+        <span>
+          Home
+        </span>
       </button>
 
 
@@ -1008,8 +1130,13 @@
         data-page="earn"
         onclick="navigate('earn')"
       >
-        <span class="nav-icon">+</span>
-        <span>Earn</span>
+        <span class="nav-icon">
+          +
+        </span>
+
+        <span>
+          Earn
+        </span>
       </button>
 
 
@@ -1019,8 +1146,13 @@
         data-page="leaderboard"
         onclick="navigate('leaderboard')"
       >
-        <span class="nav-icon">★</span>
-        <span>Ranks</span>
+        <span class="nav-icon">
+          ★
+        </span>
+
+        <span>
+          Ranks
+        </span>
       </button>
 
 
@@ -1030,8 +1162,13 @@
         data-page="wallet"
         onclick="navigate('wallet')"
       >
-        <span class="nav-icon">৳</span>
-        <span>Wallet</span>
+        <span class="nav-icon">
+          ৳
+        </span>
+
+        <span>
+          Wallet
+        </span>
       </button>
 
 
@@ -1041,8 +1178,13 @@
         data-page="profile"
         onclick="navigate('profile')"
       >
-        <span class="nav-icon">●</span>
-        <span>Profile</span>
+        <span class="nav-icon">
+          ●
+        </span>
+
+        <span>
+          Profile
+        </span>
       </button>
 
     </nav>
@@ -1414,8 +1556,9 @@
 
 
 
-  <!-- APP JS -->
+  <!-- ================= APP JS ================= -->
+
   <script src="js/app.js"></script>
 
 </body>
-            </html>
+</html>
