@@ -1,1564 +1,1503 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
-  >
+    <meta charset="UTF-8">
 
-  <title>QEXUS</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
 
-  <meta name="theme-color" content="#ffffff">
-  <meta
-    name="description"
-    content="QEXUS rewards platform"
-  >
+    <meta
+        name="theme-color"
+        content="#ffffff"
+    >
 
-  <!-- Telegram Mini App -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta
+        name="description"
+        content="QEXUS — Watch, Earn & Withdraw"
+    >
 
-  <!-- AdsGram Rewarded Ads -->
-  <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    <title>QEXUS</title>
 
-  <!-- QEXUS CSS -->
-  <link rel="stylesheet" href="css/style.css">
+    <!-- Telegram Mini App -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- AdsGram Rewarded Ads -->
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
+    <!-- Main stylesheet -->
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+
 </head>
 
 <body>
 
-  <!-- ================= GLOBAL LOADER ================= -->
+<!-- =====================================================
+     APP LOADER
+===================================================== -->
 
-  <div id="globalLoader" class="global-loader">
+<div
+    id="globalLoader"
+    class="global-loader"
+>
+
     <div class="loader-spinner"></div>
-    <div class="loader-text">
-      QEXUS লোড হচ্ছে...
+
+    <div
+        id="globalLoaderText"
+        class="loader-text"
+    >
+        Starting QEXUS...
     </div>
-  </div>
+
+</div>
 
 
-  <!-- ================= APP ================= -->
+<!-- =====================================================
+     APP
+===================================================== -->
 
-  <div id="app" class="app">
+<div
+    id="app"
+    class="app"
+>
 
-    <!-- ================= TOP BAR ================= -->
+
+    <!-- =================================================
+         TOP BAR
+    ================================================== -->
 
     <header class="topbar">
 
-      <div class="brand">
+        <div class="brand">
 
-        <div class="brand-logo">
-          Q
+            <div class="brand-logo">
+                Q
+            </div>
+
+            <div class="brand-text">
+
+                <div class="brand-name">
+                    QEXUS
+                </div>
+
+                <div class="brand-subtitle">
+                    Watch • Earn • Withdraw
+                </div>
+
+            </div>
+
         </div>
 
-        <div>
-          <div class="brand-name">
-            QEXUS
-          </div>
 
-          <div class="brand-subtitle">
-            Rewards Platform
-          </div>
+        <div class="topbar-actions">
+
+            <button
+                type="button"
+                class="icon-button"
+                onclick="openNotifications()"
+                aria-label="Notifications"
+            >
+                <span>♢</span>
+            </button>
+
+
+            <button
+                type="button"
+                class="top-avatar"
+                onclick="navigate('profile')"
+                aria-label="Profile"
+            >
+
+                <span id="topAvatarText">
+                    QX
+                </span>
+
+            </button>
+
         </div>
-
-      </div>
-
-
-      <div class="top-actions">
-
-        <button
-          id="notificationButton"
-          class="icon-button"
-          type="button"
-          aria-label="Notifications"
-          onclick="showNotifications()"
-        >
-          <span>♢</span>
-
-          <span
-            id="notificationBadge"
-            class="notification-badge hidden"
-          >
-            0
-          </span>
-        </button>
-
-
-        <button
-          id="topAvatar"
-          class="avatar"
-          type="button"
-          onclick="navigate('profile')"
-          aria-label="Profile"
-        >
-          <span id="topAvatarText">
-            U
-          </span>
-        </button>
-
-      </div>
 
     </header>
 
 
-    <!-- ================= MAIN ================= -->
 
-    <main>
+    <!-- =================================================
+         MAIN CONTENT
+    ================================================== -->
 
-
-      <!-- ================= HOME ================= -->
-
-      <section
-        id="page-home"
-        class="page active"
-      >
-
-        <div class="page-intro">
-
-          <div class="eyebrow">
-            WELCOME TO QEXUS
-          </div>
-
-          <h1 class="welcome-title">
-            হ্যালো,
-            <span id="userName">User</span>
-          </h1>
-
-        </div>
+    <main class="main-content">
 
 
-        <!-- BALANCE -->
+        <!-- =============================================
+             HOME
+        ============================================== -->
 
-        <div class="balance-card">
+        <section
+            id="page-home"
+            class="page active"
+            data-page-content="home"
+        >
 
-          <div class="balance-card-top">
+            <!-- Welcome -->
 
-            <div>
+            <div class="welcome-section">
 
-              <div class="balance-label">
-                Available Balance
-              </div>
+                <div>
 
-              <div class="balance-value">
-                ৳<span id="balanceBDT">0.00</span>
-              </div>
+                    <div class="small-label">
+                        Welcome back
+                    </div>
 
-              <div class="balance-qexc">
-                <span id="balanceQEXC">0</span>
-                QEXC
-              </div>
+                    <h1
+                        id="userName"
+                        class="welcome-name"
+                    >
+                        User
+                    </h1>
+
+                </div>
 
             </div>
 
 
-            <div class="balance-coin">
-              Q
+            <!-- Balance Card -->
+
+            <div class="balance-card">
+
+                <div class="balance-card-top">
+
+                    <div>
+
+                        <div class="balance-label">
+                            Available Balance
+                        </div>
+
+                        <div
+                            id="balanceBDT"
+                            class="balance-bdt"
+                        >
+                            ৳0.00
+                        </div>
+
+                    </div>
+
+
+                    <div class="qexc-badge">
+                        QEXC
+                    </div>
+
+                </div>
+
+
+                <div class="balance-divider"></div>
+
+
+                <div class="balance-card-bottom">
+
+                    <div>
+
+                        <div class="balance-small-label">
+                            QEXC Balance
+                        </div>
+
+                        <div
+                            id="balanceQEXC"
+                            class="balance-qexc"
+                        >
+                            0 QEXC
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="balance-action"
+                        onclick="navigate('wallet')"
+                    >
+                        Wallet
+                    </button>
+
+                </div>
+
             </div>
 
-          </div>
 
 
-          <div class="balance-divider"></div>
+            <!-- Quick Actions -->
+
+            <div class="section-heading">
+
+                <h2>
+                    Quick Actions
+                </h2>
+
+            </div>
 
 
-          <div class="balance-actions">
+            <div class="quick-grid">
+
+                <button
+                    type="button"
+                    class="quick-card"
+                    onclick="navigate('earn')"
+                >
+
+                    <div class="quick-icon earn-icon">
+                        +
+                    </div>
+
+                    <div class="quick-title">
+                        Earn
+                    </div>
+
+                    <div class="quick-description">
+                        Watch & earn
+                    </div>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="quick-card"
+                    onclick="navigate('tasks')"
+                >
+
+                    <div class="quick-icon task-icon">
+                        ✓
+                    </div>
+
+                    <div class="quick-title">
+                        Tasks
+                    </div>
+
+                    <div class="quick-description">
+                        Complete tasks
+                    </div>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="quick-card"
+                    onclick="openWithdrawModal()"
+                >
+
+                    <div class="quick-icon wallet-icon">
+                        ৳
+                    </div>
+
+                    <div class="quick-title">
+                        Withdraw
+                    </div>
+
+                    <div class="quick-description">
+                        bKash / Nagad
+                    </div>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="quick-card"
+                    onclick="navigate('profile')"
+                >
+
+                    <div class="quick-icon referral-icon">
+                        ↗
+                    </div>
+
+                    <div class="quick-title">
+                        Refer
+                    </div>
+
+                    <div class="quick-description">
+                        Invite friends
+                    </div>
+
+                </button>
+
+            </div>
+
+
+
+            <!-- Daily Bonus -->
+
+            <div class="section-heading">
+
+                <h2>
+                    Daily Bonus
+                </h2>
+
+            </div>
+
+
+            <div
+                id="dailyCountdownBox"
+                class="daily-card"
+            >
+
+                <div class="daily-left">
+
+                    <div class="daily-icon">
+                        ★
+                    </div>
+
+                    <div>
+
+                        <div class="daily-title">
+                            Daily Reward
+                        </div>
+
+                        <div
+                            id="homeDailyStatus"
+                            class="daily-description"
+                        >
+                            Claim +10 QEXC
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="daily-right">
+
+                    <div
+                        id="dailyCountdown"
+                        class="daily-countdown"
+                    >
+                        Available now
+                    </div>
+
+                    <button
+                        type="button"
+                        class="daily-button"
+                        onclick="claimDailyBonus()"
+                    >
+                        Claim
+                    </button>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Recent Transactions -->
+
+            <div class="section-heading section-heading-row">
+
+                <h2>
+                    Recent Activity
+                </h2>
+
+                <button
+                    type="button"
+                    class="text-button"
+                    onclick="navigate('wallet')"
+                >
+                    View all
+                </button>
+
+            </div>
+
+
+            <div
+                id="recentTransactions"
+                class="transaction-list"
+            >
+
+                <div class="empty-state">
+
+                    <div class="empty-icon">
+                        ◷
+                    </div>
+
+                    <div class="empty-title">
+                        No transactions yet
+                    </div>
+
+                    <div class="empty-text">
+                        Your activity will appear here.
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =============================================
+             EARN
+        ============================================== -->
+
+        <section
+            id="page-earn"
+            class="page"
+            data-page-content="earn"
+        >
+
+            <div class="page-header">
+
+                <h1>
+                    Earn QEXC
+                </h1>
+
+                <p>
+                    Complete eligible activities and earn rewards.
+                </p>
+
+            </div>
+
+
+            <!-- Rewarded Ad -->
+
+            <div class="earn-ad-card">
+
+                <div class="earn-ad-icon">
+                    ▶
+                </div>
+
+
+                <div class="earn-ad-content">
+
+                    <div class="earn-ad-title">
+                        Watch & Earn
+                    </div>
+
+                    <div class="earn-ad-description">
+                        Watch the advertisement completely to receive your reward.
+                    </div>
+
+                    <div class="earn-ad-reward">
+                        +3 QEXC
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="adContainer"
+                class="ad-container"
+            >
+
+                <div
+                    id="adStatus"
+                    class="ad-status"
+                >
+                    Watch the ad completely to earn QEXC.
+                </div>
+
+
+                <button
+                    id="watchAdButton"
+                    type="button"
+                    class="primary-button"
+                    onclick="watchAd()"
+                >
+                    Watch Ad
+                </button>
+
+            </div>
+
+
+            <!-- Daily -->
+
+            <div class="section-heading">
+
+                <h2>
+                    Daily Bonus
+                </h2>
+
+            </div>
+
+
+            <div class="daily-card">
+
+                <div class="daily-left">
+
+                    <div class="daily-icon">
+                        ★
+                    </div>
+
+                    <div>
+
+                        <div class="daily-title">
+                            Daily Reward
+                        </div>
+
+                        <div class="daily-description">
+                            One claim every 24 hours
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="daily-right">
+
+                    <div
+                        id="dailyCountdownEarn"
+                        class="daily-countdown"
+                    >
+                        Ready
+                    </div>
+
+                    <button
+                        type="button"
+                        class="daily-button"
+                        onclick="claimDailyBonus()"
+                    >
+                        Claim
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- Tasks shortcut -->
 
             <button
-              class="balance-action"
-              type="button"
-              onclick="navigate('earn')"
+                type="button"
+                class="wide-action-card"
+                onclick="navigate('tasks')"
             >
-              <span class="action-icon green">
-                +
-              </span>
 
-              <span>
-                Earn
-              </span>
+                <div>
+
+                    <div class="wide-action-title">
+                        More earning opportunities
+                    </div>
+
+                    <div class="wide-action-description">
+                        Check available tasks and offers.
+                    </div>
+
+                </div>
+
+                <div class="wide-action-arrow">
+                    →
+                </div>
+
             </button>
 
+        </section>
+
+
+
+        <!-- =============================================
+             TASKS
+        ============================================== -->
+
+        <section
+            id="page-tasks"
+            class="page"
+            data-page-content="tasks"
+        >
+
+            <div class="page-header">
+
+                <h1>
+                    Tasks
+                </h1>
+
+                <p>
+                    Complete available tasks to earn QEXC.
+                </p>
+
+            </div>
+
+
+            <div
+                id="taskList"
+                class="task-list"
+            >
+
+                <div class="loading-state">
+                    Loading tasks...
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =============================================
+             LEADERBOARD
+        ============================================== -->
+
+        <section
+            id="page-leaderboard"
+            class="page"
+            data-page-content="leaderboard"
+        >
+
+            <div class="page-header">
+
+                <h1>
+                    Leaderboard
+                </h1>
+
+                <p>
+                    See how you rank among QEXUS users.
+                </p>
+
+            </div>
+
+
+            <div class="rank-summary-card">
+
+                <div class="rank-summary-icon">
+                    #
+                </div>
+
+                <div>
+
+                    <div class="rank-summary-title">
+                        Top Earners
+                    </div>
+
+                    <div class="rank-summary-description">
+                        Rankings are based on eligible QEXC activity.
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="leaderboardList"
+                class="leaderboard-list"
+            >
+
+                <div class="loading-state">
+                    Loading leaderboard...
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =============================================
+             WALLET
+        ============================================== -->
+
+        <section
+            id="page-wallet"
+            class="page"
+            data-page-content="wallet"
+        >
+
+            <div class="page-header">
+
+                <h1>
+                    Wallet
+                </h1>
+
+                <p>
+                    Manage your QEXC balance and withdrawals.
+                </p>
+
+            </div>
+
+
+            <div class="wallet-main-card">
+
+                <div class="wallet-label">
+                    Available
+                </div>
+
+                <div
+                    id="walletBalance"
+                    class="wallet-balance"
+                >
+                    ৳0.00
+                </div>
+
+                <div
+                    id="walletQEXC"
+                    class="wallet-qexc"
+                >
+                    0 QEXC
+                </div>
+
+            </div>
+
+
+            <div class="wallet-stats">
+
+                <div class="wallet-stat">
+
+                    <div class="wallet-stat-label">
+                        Total Earned
+                    </div>
+
+                    <div
+                        id="totalEarned"
+                        class="wallet-stat-value"
+                    >
+                        0 QEXC
+                    </div>
+
+                </div>
+
+
+                <div class="wallet-stat">
+
+                    <div class="wallet-stat-label">
+                        Total Withdrawn
+                    </div>
+
+                    <div
+                        id="totalWithdrawn"
+                        class="wallet-stat-value"
+                    >
+                        0 QEXC
+                    </div>
+
+                </div>
+
+            </div>
+
 
             <button
-              class="balance-action"
-              type="button"
-              onclick="openWithdrawModal()"
+                type="button"
+                class="primary-button wallet-withdraw-button"
+                onclick="openWithdrawModal()"
             >
-              <span class="action-icon blue">
-                ↗
-              </span>
-
-              <span>
                 Withdraw
-              </span>
             </button>
 
-          </div>
 
-        </div>
+            <div class="section-heading">
 
+                <h2>
+                    Transaction History
+                </h2>
 
-        <!-- QUICK ACTIONS -->
-
-        <div class="section-header">
-
-          <div>
-
-            <div class="section-kicker">
-              EXPLORE
             </div>
 
-            <div class="section-title">
-              Quick Actions
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <div class="quick-grid">
-
-          <button
-            class="quick-item"
-            type="button"
-            onclick="navigate('earn')"
-          >
-            <span class="quick-icon green">
-              ▶
-            </span>
-
-            <span class="quick-label">
-              Earn
-            </span>
-
-            <span class="quick-arrow">
-              ›
-            </span>
-          </button>
-
-
-          <button
-            class="quick-item"
-            type="button"
-            onclick="navigate('tasks')"
-          >
-            <span class="quick-icon blue">
-              ✓
-            </span>
-
-            <span class="quick-label">
-              Tasks
-            </span>
-
-            <span class="quick-arrow">
-              ›
-            </span>
-          </button>
-
-
-          <button
-            class="quick-item"
-            type="button"
-            onclick="navigate('wallet')"
-          >
-            <span class="quick-icon purple">
-              ৳
-            </span>
-
-            <span class="quick-label">
-              Wallet
-            </span>
-
-            <span class="quick-arrow">
-              ›
-            </span>
-          </button>
-
-
-          <button
-            class="quick-item"
-            type="button"
-            onclick="navigate('profile')"
-          >
-            <span class="quick-icon orange">
-              ●
-            </span>
-
-            <span class="quick-label">
-              Profile
-            </span>
-
-            <span class="quick-arrow">
-              ›
-            </span>
-          </button>
-
-        </div>
-
-
-        <!-- DAILY STATUS -->
-
-        <div class="mini-status-card">
-
-          <div class="mini-status-icon">
-            ✦
-          </div>
-
-          <div class="mini-status-content">
-
-            <div class="mini-status-title">
-              Daily Bonus
-            </div>
 
             <div
-              id="homeDailyStatus"
-              class="mini-status-text"
-            >
-              আজকের bonus সংগ্রহ করুন
-            </div>
-
-          </div>
-
-
-          <button
-            type="button"
-            class="section-link"
-            onclick="navigate('earn')"
-          >
-            দেখুন
-          </button>
-
-        </div>
-
-
-        <!-- RECENT ACTIVITY -->
-
-        <div class="section-header">
-
-          <div>
-
-            <div class="section-kicker">
-              ACTIVITY
-            </div>
-
-            <div class="section-title">
-              Recent Activity
-            </div>
-
-          </div>
-
-
-          <button
-            type="button"
-            class="section-link"
-            onclick="navigate('wallet')"
-          >
-            সব দেখুন
-          </button>
-
-        </div>
-
-
-        <div
-          id="recentTransactions"
-          class="transaction-list"
-        >
-
-          <div class="empty-state compact">
-
-            <div class="empty-icon">
-              ◌
-            </div>
-
-            <div class="empty-title">
-              কোনো activity নেই
-            </div>
-
-            <div class="empty-description">
-              Earn শুরু করলে এখানে আপনার activity দেখা যাবে।
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-
-      <!-- ================= EARN ================= -->
-
-      <section
-        id="page-earn"
-        class="page"
-      >
-
-        <div class="page-heading">
-
-          <div class="page-title">
-            Earn QEXC
-          </div>
-
-          <div class="page-description">
-            সহজ ও verified উপায়ে QEXC সংগ্রহ করুন।
-          </div>
-
-        </div>
-
-
-        <!-- DAILY BONUS -->
-
-        <div class="earn-card">
-
-          <div class="earn-card-head">
-
-            <div class="earn-main-icon">
-              ✦
-            </div>
-
-            <div class="earn-card-info">
-
-              <div class="earn-card-title">
-                Daily Bonus
-              </div>
-
-              <div class="earn-card-subtitle">
-                প্রতিদিন একবার bonus claim করুন
-              </div>
-
-            </div>
-
-            <div class="earn-reward">
-              +10 QEXC
-            </div>
-
-          </div>
-
-
-          <div
-            id="dailyCountdownBox"
-            class="countdown-box"
-          >
-
-            <div class="countdown-label">
-              পরবর্তী bonus
-            </div>
-
-            <div
-              id="dailyCountdown"
-              class="countdown-value"
-            >
-              Available
-            </div>
-
-          </div>
-
-
-          <button
-            id="dailyBonusButton"
-            type="button"
-            class="primary-btn"
-            onclick="claimDailyBonus()"
-          >
-            Daily Bonus নিন
-          </button>
-
-        </div>
-
-
-        <!-- REWARDED AD -->
-
-        <div class="earn-card featured-earn-card">
-
-          <div class="earn-card-head">
-
-            <div class="earn-main-icon">
-              ▶
-            </div>
-
-            <div class="earn-card-info">
-
-              <div class="earn-card-title">
-                Watch & Earn
-              </div>
-
-              <div class="earn-card-subtitle">
-                Verified rewarded advertisement
-              </div>
-
-            </div>
-
-            <div class="earn-reward">
-              +3 QEXC
-            </div>
-
-          </div>
-
-
-          <div
-            id="adContainer"
-            class="ad-container"
-          >
-
-            <div class="ad-placeholder-icon">
-              ▶
-            </div>
-
-            <div class="ad-label">
-              Rewarded Ad
-            </div>
-
-            <div id="adStatus">
-              বিজ্ঞাপন প্রস্তুত হচ্ছে...
-            </div>
-
-          </div>
-
-
-          <button
-            id="watchAdButton"
-            type="button"
-            class="primary-btn"
-            onclick="watchAd()"
-          >
-            বিজ্ঞাপন দেখুন
-          </button>
-
-        </div>
-
-
-        <!-- TASK SHORTCUT -->
-
-        <div class="task-summary-card">
-
-          <div class="task-summary-left">
-
-            <div class="task-summary-icon">
-              ✓
-            </div>
-
-            <div>
-
-              <div class="task-summary-title">
-                More Tasks
-              </div>
-
-              <div class="task-summary-subtitle">
-                আরও reward পাওয়ার সুযোগ
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <div
-            id="taskCount"
-            class="task-count"
-          >
-            0
-          </div>
-
-        </div>
-
-
-        <button
-          type="button"
-          class="secondary-btn"
-          onclick="navigate('tasks')"
-        >
-          সব Tasks দেখুন
-        </button>
-
-      </section>
-
-
-
-      <!-- ================= TASKS ================= -->
-
-      <section
-        id="page-tasks"
-        class="page"
-      >
-
-        <div class="page-heading">
-
-          <div class="page-title">
-            Tasks
-          </div>
-
-          <div class="page-description">
-            Available tasks complete করে QEXC earn করুন।
-          </div>
-
-        </div>
-
-
-        <div
-          id="taskList"
-          class="task-list"
-        >
-
-          <div class="empty-state">
-
-            <div class="empty-icon">
-              ✓
-            </div>
-
-            <div class="empty-title">
-              Tasks লোড হচ্ছে...
-            </div>
-
-            <div class="empty-description">
-              Available tasks খোঁজা হচ্ছে।
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-
-      <!-- ================= LEADERBOARD ================= -->
-
-      <section
-        id="page-leaderboard"
-        class="page"
-      >
-
-        <div class="page-heading">
-
-          <div class="page-title">
-            Leaderboard
-          </div>
-
-          <div class="page-description">
-            QEXUS-এর top earners দেখুন।
-          </div>
-
-        </div>
-
-
-        <div class="leaderboard-tabs">
-
-          <button
-            type="button"
-            class="leaderboard-tab active"
-            data-period="all"
-            onclick="loadLeaderboard('all')"
-          >
-            All Time
-          </button>
-
-
-          <button
-            type="button"
-            class="leaderboard-tab"
-            data-period="month"
-            onclick="loadLeaderboard('month')"
-          >
-            Monthly
-          </button>
-
-
-          <button
-            type="button"
-            class="leaderboard-tab"
-            data-period="week"
-            onclick="loadLeaderboard('week')"
-          >
-            Weekly
-          </button>
-
-        </div>
-
-
-        <div
-          id="leaderboardTop"
-          class="leaderboard-top"
-        ></div>
-
-
-        <div
-          id="leaderboardList"
-          class="leaderboard-list"
-        >
-
-          <div class="leaderboard-loading">
-            Leaderboard লোড হচ্ছে...
-          </div>
-
-        </div>
-
-
-        <div class="my-rank-card">
-
-          <div class="my-rank-label">
-            Your Rank
-          </div>
-
-          <div
-            id="myRankValue"
-            class="my-rank-value"
-          >
-            —
-          </div>
-
-        </div>
-
-      </section>
-
-
-
-      <!-- ================= WALLET ================= -->
-
-      <section
-        id="page-wallet"
-        class="page"
-      >
-
-        <div class="page-heading">
-
-          <div class="page-title">
-            Wallet
-          </div>
-
-          <div class="page-description">
-            আপনার QEXC balance ও transaction দেখুন।
-          </div>
-
-        </div>
-
-
-        <div class="wallet-card">
-
-          <div class="wallet-balance-label">
-            Available Balance
-          </div>
-
-
-          <div
-            id="walletQEXC"
-            class="wallet-qexc"
-          >
-            0 QEXC
-          </div>
-
-
-          <div
-            id="walletBalance"
-            class="wallet-bdt"
-          >
-            ৳0.00
-          </div>
-
-
-          <div class="wallet-divider"></div>
-
-
-          <div class="wallet-stats">
-
-            <div class="wallet-stat">
-
-              <div class="wallet-stat-label">
-                Total Earned
-              </div>
-
-              <div
-                id="totalEarned"
-                class="wallet-stat-value"
-              >
-                0
-              </div>
-
-            </div>
-
-
-            <div class="wallet-stat">
-
-              <div class="wallet-stat-label">
-                Withdrawn
-              </div>
-
-              <div
-                id="totalWithdrawn"
-                class="wallet-stat-value"
-              >
-                0
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <button
-          type="button"
-          class="primary-btn"
-          onclick="openWithdrawModal()"
-        >
-          Withdraw
-        </button>
-
-
-        <div class="section-header">
-
-          <div>
-
-            <div class="section-kicker">
-              HISTORY
-            </div>
-
-            <div class="section-title">
-              Transactions
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <div
-          id="historyList"
-          class="transaction-list"
-        >
-
-          <div class="empty-state">
-
-            <div class="empty-icon">
-              ◌
-            </div>
-
-            <div class="empty-title">
-              কোনো transaction নেই
-            </div>
-
-            <div class="empty-description">
-              আপনার earning ও withdrawal এখানে দেখা যাবে।
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-
-      <!-- ================= PROFILE ================= -->
-
-      <section
-        id="page-profile"
-        class="page"
-      >
-
-        <div class="profile-header">
-
-          <div
-            id="profileAvatar"
-            class="profile-avatar"
-          >
-            U
-          </div>
-
-
-          <div
-            id="profileName"
-            class="profile-name"
-          >
-            User
-          </div>
-
-
-          <div
-            id="profileUsername"
-            class="profile-username"
-          >
-            @username
-          </div>
-
-
-          <div class="profile-stats">
-
-            <div class="profile-stat">
-
-              <div
-                id="profileEarned"
-                class="profile-stat-value"
-              >
-                0
-              </div>
-
-              <div class="profile-stat-label">
-                Earned
-              </div>
-
-            </div>
-
-
-            <div class="profile-stat">
-
-              <div
-                id="profileWithdrawn"
-                class="profile-stat-value"
-              >
-                0
-              </div>
-
-              <div class="profile-stat-label">
-                Withdrawn
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <!-- REFERRAL -->
-
-        <div class="referral-card">
-
-          <div class="referral-title">
-            Invite & Earn
-          </div>
-
-          <div class="referral-description">
-            বন্ধুদের invite করে referral reward পাওয়ার সুযোগ।
-          </div>
-
-
-          <div class="referral-box">
-
-            <input
-              id="referralLink"
-              class="input"
-              type="text"
-              readonly
-              value=""
+                id="historyList"
+                class="transaction-list"
             >
 
-          </div>
+                <div class="empty-state">
 
+                    <div class="empty-icon">
+                        ◷
+                    </div>
 
-          <div class="referral-actions">
+                    <div class="empty-title">
+                        No transactions yet
+                    </div>
 
-            <button
-              type="button"
-              class="primary-btn"
-              onclick="copyReferral()"
-            >
-              Copy Link
-            </button>
+                </div>
 
-
-            <button
-              type="button"
-              class="secondary-btn"
-              onclick="shareReferral()"
-            >
-              Share
-            </button>
-
-          </div>
-
-        </div>
-
-
-        <!-- SETTINGS -->
-
-        <div class="section-header">
-
-          <div>
-
-            <div class="section-kicker">
-              ACCOUNT
             </div>
 
-            <div class="section-title">
-              Settings
+        </section>
+
+
+
+        <!-- =============================================
+             PROFILE
+        ============================================== -->
+
+        <section
+            id="page-profile"
+            class="page"
+            data-page-content="profile"
+        >
+
+            <div class="profile-header">
+
+                <div
+                    id="profileAvatar"
+                    class="profile-avatar"
+                >
+                    QX
+                </div>
+
+
+                <div>
+
+                    <h1
+                        id="profileName"
+                        class="profile-name"
+                    >
+                        User
+                    </h1>
+
+                    <div
+                        id="profileUsername"
+                        class="profile-username"
+                    >
+                        @username
+                    </div>
+
+                </div>
+
             </div>
 
-          </div>
 
-        </div>
+            <div class="profile-stats">
 
+                <div class="profile-stat">
 
-        <div class="settings-list">
+                    <div class="profile-stat-label">
+                        Earned
+                    </div>
 
-          <button
-            type="button"
-            class="setting-item"
-            onclick="showNotifications()"
-          >
+                    <div
+                        id="profileEarned"
+                        class="profile-stat-value"
+                    >
+                        0 QEXC
+                    </div>
 
-            <span class="setting-icon">
-              ♢
-            </span>
-
-            <span class="setting-text">
-              Notifications
-            </span>
-
-            <span class="setting-arrow">
-              ›
-            </span>
-
-          </button>
+                </div>
 
 
-          <button
-            type="button"
-            class="setting-item"
-            onclick="showPolicy('terms')"
-          >
+                <div class="profile-stat">
 
-            <span class="setting-icon">
-              □
-            </span>
+                    <div class="profile-stat-label">
+                        Withdrawn
+                    </div>
 
-            <span class="setting-text">
-              Terms & Conditions
-            </span>
+                    <div
+                        id="profileWithdrawn"
+                        class="profile-stat-value"
+                    >
+                        0 QEXC
+                    </div>
 
-            <span class="setting-arrow">
-              ›
-            </span>
+                </div>
 
-          </button>
+            </div>
 
 
-          <button
-            type="button"
-            class="setting-item"
-            onclick="showPolicy('privacy')"
-          >
 
-            <span class="setting-icon">
-              ◇
-            </span>
+            <!-- Referral -->
 
-            <span class="setting-text">
-              Privacy Policy
-            </span>
+            <div class="profile-section">
 
-            <span class="setting-arrow">
-              ›
-            </span>
+                <div class="section-heading">
 
-          </button>
+                    <h2>
+                        Referral
+                    </h2>
+
+                </div>
 
 
-          <button
-            type="button"
-            class="setting-item"
-            onclick="showHelp()"
-          >
+                <div class="referral-card">
 
-            <span class="setting-icon">
-              ?
-            </span>
+                    <div class="referral-title">
+                        Invite friends
+                    </div>
 
-            <span class="setting-text">
-              Help & Support
-            </span>
-
-            <span class="setting-arrow">
-              ›
-            </span>
-
-          </button>
+                    <div class="referral-description">
+                        Share your referral link and earn eligible referral rewards.
+                    </div>
 
 
-          <button
-            type="button"
-            class="setting-item"
-            onclick="showAbout()"
-          >
+                    <div class="referral-input-row">
 
-            <span class="setting-icon">
-              i
-            </span>
+                        <input
+                            id="referralLink"
+                            type="text"
+                            readonly
+                            placeholder="Referral link"
+                        >
 
-            <span class="setting-text">
-              About QEXUS
-            </span>
+                        <button
+                            type="button"
+                            onclick="copyReferralLink()"
+                            class="copy-button"
+                        >
+                            Copy
+                        </button>
 
-            <span class="setting-arrow">
-              ›
-            </span>
+                    </div>
 
-          </button>
+                </div>
 
-        </div>
+            </div>
 
-      </section>
+
+
+            <!-- Settings -->
+
+            <div class="profile-menu">
+
+                <button
+                    type="button"
+                    class="profile-menu-item"
+                    onclick="openHelp()"
+                >
+
+                    <span>
+                        Help & Support
+                    </span>
+
+                    <span>
+                        →
+                    </span>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="profile-menu-item"
+                    onclick="openAbout()"
+                >
+
+                    <span>
+                        About QEXUS
+                    </span>
+
+                    <span>
+                        →
+                    </span>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="profile-menu-item"
+                    onclick="openPolicy('terms')"
+                >
+
+                    <span>
+                        Terms & Conditions
+                    </span>
+
+                    <span>
+                        →
+                    </span>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="profile-menu-item"
+                    onclick="openPolicy('privacy')"
+                >
+
+                    <span>
+                        Privacy Policy
+                    </span>
+
+                    <span>
+                        →
+                    </span>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="profile-menu-item"
+                    onclick="openPolicy('earning')"
+                >
+
+                    <span>
+                        Earning Rules
+                    </span>
+
+                    <span>
+                        →
+                    </span>
+
+                </button>
+
+            </div>
+
+        </section>
 
     </main>
 
 
 
-    <!-- ================= BOTTOM NAV ================= -->
+    <!-- =================================================
+         BOTTOM NAVIGATION
+    ================================================== -->
 
     <nav class="bottom-nav">
 
-      <button
-        type="button"
-        class="nav-item active"
-        data-page="home"
-        onclick="navigate('home')"
-      >
-        <span class="nav-icon">
-          ⌂
-        </span>
+        <button
+            type="button"
+            class="nav-item active"
+            data-page="home"
+            onclick="navigate('home')"
+        >
 
-        <span>
-          Home
-        </span>
-      </button>
+            <span class="nav-icon">
+                ⌂
+            </span>
 
+            <span class="nav-label">
+                Home
+            </span>
 
-      <button
-        type="button"
-        class="nav-item"
-        data-page="earn"
-        onclick="navigate('earn')"
-      >
-        <span class="nav-icon">
-          +
-        </span>
-
-        <span>
-          Earn
-        </span>
-      </button>
+        </button>
 
 
-      <button
-        type="button"
-        class="nav-item"
-        data-page="leaderboard"
-        onclick="navigate('leaderboard')"
-      >
-        <span class="nav-icon">
-          ★
-        </span>
+        <button
+            type="button"
+            class="nav-item"
+            data-page="earn"
+            onclick="navigate('earn')"
+        >
 
-        <span>
-          Ranks
-        </span>
-      </button>
+            <span class="nav-icon">
+                +
+            </span>
 
+            <span class="nav-label">
+                Earn
+            </span>
 
-      <button
-        type="button"
-        class="nav-item"
-        data-page="wallet"
-        onclick="navigate('wallet')"
-      >
-        <span class="nav-icon">
-          ৳
-        </span>
-
-        <span>
-          Wallet
-        </span>
-      </button>
+        </button>
 
 
-      <button
-        type="button"
-        class="nav-item"
-        data-page="profile"
-        onclick="navigate('profile')"
-      >
-        <span class="nav-icon">
-          ●
-        </span>
+        <button
+            type="button"
+            class="nav-item"
+            data-page="leaderboard"
+            onclick="navigate('leaderboard')"
+        >
 
-        <span>
-          Profile
-        </span>
-      </button>
+            <span class="nav-icon">
+                #
+            </span>
+
+            <span class="nav-label">
+                Ranks
+            </span>
+
+        </button>
+
+
+        <button
+            type="button"
+            class="nav-item"
+            data-page="wallet"
+            onclick="navigate('wallet')"
+        >
+
+            <span class="nav-icon">
+                ৳
+            </span>
+
+            <span class="nav-label">
+                Wallet
+            </span>
+
+        </button>
+
+
+        <button
+            type="button"
+            class="nav-item"
+            data-page="profile"
+            onclick="navigate('profile')"
+        >
+
+            <span class="nav-icon">
+                ●
+            </span>
+
+            <span class="nav-label">
+                Profile
+            </span>
+
+        </button>
 
     </nav>
 
-  </div>
+</div>
 
 
 
-  <!-- ================= WITHDRAW MODAL ================= -->
+<!-- =====================================================
+     WITHDRAWAL MODAL
+===================================================== -->
 
-  <div
+<div
     id="withdrawModal"
     class="modal"
-  >
+    style="display:none;"
+>
 
-    <div class="modal-content">
+    <div class="modal-box">
 
-      <div class="modal-handle"></div>
+        <div class="modal-header">
 
+            <div>
 
-      <button
-        type="button"
-        class="modal-close"
-        onclick="closeWithdrawModal()"
-      >
-        ×
-      </button>
+                <h2>
+                    Withdraw
+                </h2>
 
+                <p>
+                    Minimum withdrawal ৳100
+                </p>
 
-      <div class="modal-title">
-        Withdraw
-      </div>
-
-      <div class="modal-subtitle">
-        আপনার QEXC balance থেকে withdrawal request করুন।
-      </div>
+            </div>
 
 
-      <div class="withdraw-balance">
-
-        <div class="withdraw-balance-icon">
-          Q
-        </div>
-
-        <div>
-
-          <div>
-            Available
-          </div>
-
-          <strong id="withdrawAvailable">
-            ৳0.00
-          </strong>
+            <button
+                type="button"
+                class="modal-close"
+                onclick="closeWithdrawModal()"
+            >
+                ×
+            </button>
 
         </div>
 
-      </div>
 
-
-      <div class="input-group">
-
-        <label class="input-label">
-          Amount (BDT)
-        </label>
-
-        <input
-          id="withdrawAmount"
-          class="input"
-          type="number"
-          min="100"
-          step="1"
-          placeholder="100"
+        <div
+            id="withdrawAvailable"
+            class="withdraw-available"
         >
-
-        <div class="input-hint">
-          Minimum withdrawal ৳100
+            Available: ৳0.00
         </div>
 
-      </div>
+
+        <div class="form-group">
+
+            <label>
+                Payment Method
+            </label>
 
 
-      <div class="input-group">
+            <div class="method-selector">
 
-        <label class="input-label">
-          Payment Method
-        </label>
-
-
-        <div class="method-grid">
-
-          <button
-            type="button"
-            class="method-btn"
-            data-method="bKash"
-            onclick="selectWithdrawMethod('bKash')"
-          >
-
-            <span class="method-logo">
-              bK
-            </span>
-
-            <span>
-              bKash
-            </span>
-
-          </button>
+                <button
+                    type="button"
+                    class="method-button active"
+                    data-method="bKash"
+                    onclick="selectWithdrawMethod('bKash')"
+                >
+                    bKash
+                </button>
 
 
-          <button
-            type="button"
-            class="method-btn"
-            data-method="Nagad"
-            onclick="selectWithdrawMethod('Nagad')"
-          >
+                <button
+                    type="button"
+                    class="method-button"
+                    data-method="Nagad"
+                    onclick="selectWithdrawMethod('Nagad')"
+                >
+                    Nagad
+                </button>
 
-            <span class="method-logo">
-              N
-            </span>
-
-            <span>
-              Nagad
-            </span>
-
-          </button>
+            </div>
 
         </div>
 
-      </div>
+
+        <div class="form-group">
+
+            <label for="withdrawAmount">
+                Amount (BDT)
+            </label>
+
+            <input
+                id="withdrawAmount"
+                type="number"
+                inputmode="decimal"
+                min="100"
+                step="1"
+                placeholder="100"
+            >
+
+        </div>
 
 
-      <div class="input-group">
+        <div class="form-group">
 
-        <label class="input-label">
-          Account Number
-        </label>
+            <label for="withdrawNumber">
+                bKash / Nagad Number
+            </label>
 
-        <input
-          id="withdrawNumber"
-          class="input"
-          type="tel"
-          inputmode="numeric"
-          maxlength="11"
-          placeholder="01XXXXXXXXX"
+            <input
+                id="withdrawNumber"
+                type="tel"
+                inputmode="numeric"
+                maxlength="11"
+                placeholder="01XXXXXXXXX"
+            >
+
+        </div>
+
+
+        <div class="withdraw-note">
+
+            Withdrawal requests are manually reviewed.
+            Payment is sent after approval.
+
+        </div>
+
+
+        <button
+            id="withdrawSubmit"
+            type="button"
+            class="primary-button"
+            onclick="submitWithdrawal()"
         >
-
-      </div>
-
-
-      <div class="withdraw-warning">
-        Withdrawal request manual review-এর মাধ্যমে process হবে।
-      </div>
-
-
-      <button
-        id="withdrawSubmit"
-        type="button"
-        class="primary-btn"
-        onclick="submitWithdrawal()"
-      >
-        Request Withdrawal
-      </button>
+            Submit Withdrawal
+        </button>
 
     </div>
 
-  </div>
+</div>
 
 
 
-  <!-- ================= ANNOUNCEMENT ================= -->
+<!-- =====================================================
+     NOTIFICATION MODAL
+===================================================== -->
 
-  <div
-    id="announcementModal"
-    class="modal announcement-modal"
-  >
-
-    <div class="modal-content announcement-content">
-
-      <button
-        type="button"
-        class="modal-close"
-        onclick="closeAnnouncement()"
-      >
-        ×
-      </button>
-
-
-      <div class="announcement-icon">
-        Q
-      </div>
-
-
-      <div
-        id="announcementTitle"
-        class="modal-title"
-      >
-        Join our Official Channel
-      </div>
-
-
-      <div
-        id="announcementDescription"
-        class="announcement-description"
-      >
-        QEXUS-এর official update, announcement এবং important information পেতে আমাদের official channel-এ join করুন।
-      </div>
-
-
-      <button
-        type="button"
-        class="primary-btn"
-        onclick="openOfficialChannel()"
-      >
-        Official Channel
-      </button>
-
-
-      <button
-        type="button"
-        class="secondary-btn"
-        onclick="closeAnnouncement()"
-      >
-        পরে দেখব
-      </button>
-
-    </div>
-
-  </div>
-
-
-
-  <!-- ================= NOTIFICATIONS ================= -->
-
-  <div
+<div
     id="notificationModal"
     class="modal"
-  >
+    style="display:none;"
+>
 
-    <div class="modal-content">
+    <div class="modal-box">
 
-      <button
-        type="button"
-        class="modal-close"
-        onclick="closeNotifications()"
-      >
-        ×
-      </button>
+        <div class="modal-header">
 
+            <div>
 
-      <div class="modal-title">
-        Notifications
-      </div>
+                <h2>
+                    Notifications
+                </h2>
 
-      <div class="modal-subtitle">
-        QEXUS-এর latest updates
-      </div>
+            </div>
 
 
-      <div
-        id="notificationList"
-        class="notification-list"
-      >
-
-        <div class="empty-state compact">
-
-          <div class="empty-icon">
-            ♢
-          </div>
-
-          <div class="empty-title">
-            কোনো notification নেই
-          </div>
-
-          <div class="empty-description">
-            নতুন notification এলে এখানে দেখা যাবে।
-          </div>
+            <button
+                type="button"
+                class="modal-close"
+                onclick="closeNotifications()"
+            >
+                ×
+            </button>
 
         </div>
 
-      </div>
+
+        <div class="notification-content">
+
+            <div class="notification-item">
+
+                <div class="notification-title">
+                    Welcome to QEXUS
+                </div>
+
+                <div class="notification-text">
+                    Start earning through available activities.
+                </div>
+
+            </div>
+
+        </div>
 
     </div>
 
-  </div>
+</div>
 
 
 
-  <!-- ================= POLICY ================= -->
+<!-- =====================================================
+     ANNOUNCEMENT MODAL
+===================================================== -->
 
-  <div
+<div
+    id="announcementModal"
+    class="modal"
+    style="display:none;"
+>
+
+    <div class="modal-box">
+
+        <div class="modal-header">
+
+            <div>
+
+                <h2>
+                    QEXUS Announcement
+                </h2>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="modal-close"
+                onclick="closeAnnouncement()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="info-content">
+
+            <p>
+                Welcome to QEXUS.
+            </p>
+
+            <p>
+                Follow the platform rules and use only legitimate earning activities.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     POLICY MODAL
+===================================================== -->
+
+<div
     id="policyModal"
     class="modal"
-  >
+    style="display:none;"
+>
 
-    <div class="modal-content">
+    <div class="modal-box">
 
-      <button
-        type="button"
-        class="modal-close"
-        onclick="closeInfoModal()"
-      >
-        ×
-      </button>
+        <div class="modal-header">
 
+            <div>
 
-      <div
-        id="policyTitle"
-        class="modal-title"
-      >
-        Policy
-      </div>
+                <h2 id="policyTitle">
+                    Policy
+                </h2>
+
+            </div>
 
 
-      <div
-        id="policyBody"
-        class="policy-body"
-      ></div>
+            <button
+                type="button"
+                class="modal-close"
+                onclick="closePolicy()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div
+            id="policyBody"
+            class="info-content"
+        >
+        </div>
 
     </div>
 
-  </div>
+</div>
 
 
 
-  <!-- ================= INFO MODAL ================= -->
+<!-- =====================================================
+     HELP / ABOUT MODAL
+===================================================== -->
 
-  <div
+<div
     id="infoModal"
     class="modal"
-  >
+    style="display:none;"
+>
 
-    <div class="modal-content">
+    <div class="modal-box">
 
-      <button
-        type="button"
-        class="modal-close"
-        onclick="closeInfoModal()"
-      >
-        ×
-      </button>
+        <div class="modal-header">
 
+            <div>
 
-      <div
-        id="infoModalTitle"
-        class="modal-title"
-      >
-        QEXUS
-      </div>
+                <h2 id="infoModalTitle">
+                    Information
+                </h2>
+
+            </div>
 
 
-      <div
-        id="infoModalBody"
-        class="policy-body"
-      ></div>
+            <button
+                type="button"
+                class="modal-close"
+                onclick="closeInfoModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div
+            id="infoModalBody"
+            class="info-content"
+        >
+        </div>
 
     </div>
 
-  </div>
+</div>
 
 
 
-  <!-- ================= TOAST ================= -->
+<!-- =====================================================
+     TOAST
+===================================================== -->
 
-  <div
+<div
     id="toast"
     class="toast"
-  >
-    <span id="toastMessage"></span>
-  </div>
+>
+</div>
 
 
 
-  <!-- ================= APP JS ================= -->
+<!-- =====================================================
+     APP JAVASCRIPT
+===================================================== -->
 
-  <script src="js/app.js"></script>
+<script src="js/app.js"></script>
 
 </body>
 </html>
