@@ -1,2690 +1,2763 @@
 /* =========================================================
-   QEXUS - APP.JS
-   Telegram Mini App + AdsGram + QEXC Rewards
+   QEXUS — Telegram Mini App
+   app.js
    ========================================================= */
 
 "use strict";
 
-/* =========================================================
+/* =========================
    CONFIG
-   ========================================================= */
+========================= */
 
-const API_BASE =
-  "https://qexus-backend.onrender.com/api";
+const API_BASE = "https://qexus-backend.onrender.com/api";
 
 const ADSGRAM_BLOCK_ID = "47279";
 
-const AD_REWARD_QEXC = 3;
-const DAILY_BONUS_QEXC = 10;
+const CONFIG = {
+    AD_REWARD_QEXC: 3,
+    DAILY_BONUS_QEXC: 10,
+    QEXC_TO_BDT: 0.10,
+    MIN_WITHDRAW_BDT: 100,
 
-const QEXC_TO_BDT = 0.10;
-const MIN_WITHDRAW_BDT = 100;
+    DAILY_COOLDOWN_MS: 24 * 60 * 60 * 1000,
 
-const OFFICIAL_CHANNEL =
-  "https://t.me/Qexus_Official";
-
-const REFERRAL_BOT =
-  "Qexus_Official_Bot";
-
-
-/* =========================================================
-   TELEGRAM
-   ========================================================= */
-
-const tg = window.Telegram?.WebApp || null;
-
-if (tg) {
-  try {
-    tg.ready();
-    tg.expand();
-
-    if (tg.setHeaderColor) {
-      tg.setHeaderColor("#ffffff");
-    }
-
-    if (tg.setBackgroundColor) {
-      tg.setBackgroundColor("#ffffff");
-    }
-  } catch (error) {
-    console.warn("Telegram WebApp init error:", error);
-  }
-}
-
-
-/* =========================================================
-   STATE
-   ========================================================= */
-
-const state = {
-  user: null,
-
-  wallet: {
-    balance_qexc: 0,
-    locked_qexc: 0,
-    total_earned: 0,
-    total_withdrawn: 0
-  },
-
-  transactions: [],
-  tasks: [],
-  leaderboard: [],
-
-  currentPage: "home",
-
-  withdrawMethod: null,
-
-  dailyNextClaimAt: null,
-
-  dailyTimer: null,
-
-  adController: null,
-
-  adLoading: false,
-
-  initialized: false
+    REQUEST_TIMEOUT: 15000
 };
 
 
-/* =========================================================
-   DOM HELPERS
-   ========================================================= */
+/* =========================
+   TELEGRAM
+========================= */
+
+const tg = window.Telegram && window.Telegram.WebApp
+    ? window.Telegram.WebApp
+    : null;
+
+if (tg) {
+    try {
+        tg.ready();
+        tg.expand();
+
+        if (typeof tg.setHeaderColor === "function") {
+            tg.setHeaderColor("#ffffff");
+        }
+
+        if (typeof tg.setBackgroundColor === "function") {
+            tg.setBackgroundColor("#ffffff");
+        }
+
+        if (typeof tg.enableClosingConfirmation === "function") {
+            tg.enableClosingConfirmation();
+        }
+    } catch (error) {
+        console.warn("Telegram initialization error:", error);
+    }
+}
+
+
+/* =========================
+   STATE
+========================= */
+
+const state = {
+    user: null,
+
+    wallet: {
+        balance_qexc: 0,
+        locked_qexc: 0,
+        total_earned: 0,
+        total_withdrawn: 0
+    },
+
+    transactions: [],
+    tasks: [],
+    leaderboard: [],
+
+    currentPage: "home",
+
+    withdrawMethod: "bKash",
+
+    adController: null,
+    adLoading: false,
+
+    dailyLoading: false,
+    dailyNextClaimAt: null,
+    dailyTimer: null,
+
+    initialized: false
+};
+
+
+/* =========================
+   HELPERS
+========================= */
 
 function $(id) {
-  return document.getElementById(id);
+    return document.getElementById(id);
 }
 
 
-function showElement(id) {
-  const el = $(id);
-
-  if (el) {
-    el.classList.remove("hidden");
-  }
+function $$(selector) {
+    return document.querySelectorAll(selector);
 }
 
 
-function hideElement(id) {
-  const el = $(id);
-
-  if (el) {
-    el.classList.add("hidden");
-  }
+function safeNumber(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
 }
 
 
-/* =========================================================
-   TOAST
-   ========================================================= */
-
-function showToast(message, duration = 2500) {
-
-  const toast = $("toast");
-  const text = $("toastMessage");
-
-  if (!toast || !text) {
-    alert(message);
-    return;
-  }
-
-  text.textContent = message;
-
-  toast.classList.add("show");
-
-  setTimeout(() => {
-    toast.classList.remove("show");
-  }, duration);
+function escapeHTML(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 
-/* =========================================================
-   LOADER
-   ========================================================= */
-
-function showLoader(text = "QEXUS লোড হচ্ছে...") {
-
-  const loader = $("globalLoader");
-
-  if (!loader) return;
-
-  const loaderText =
-    loader.querySelector(".loader-text");
-
-  if (loaderText) {
-    loaderText.textContent = text;
-  }
-
-  loader.classList.remove("hidden");
+function escapeAttribute(value) {
+    return escapeHTML(value);
 }
 
 
-function hideLoader() {
-
-  const loader = $("globalLoader");
-
-  if (!loader) return;
-
-  loader.classList.add("hidden");
+function formatQEXC(value) {
+    return Math.floor(safeNumber(value)).toLocaleString("en-US");
 }
 
 
-/* =========================================================
-   TELEGRAM INIT DATA
-   ========================================================= */
-
-function getTelegramInitData() {
-
-  if (!tg) {
-    return "";
-  }
-
-  return tg.initData || "";
+function formatBDTFromQEXC(qexc) {
+    return (safeNumber(qexc) * CONFIG.QEXC_TO_BDT)
+        .toFixed(2);
 }
 
 
-/* =========================================================
-   API HELPER
-   ========================================================= */
-
-async function apiRequest(
-  endpoint,
-  options = {}
-) {
-
-  const headers = {
-    "Content-Type": "application/json",
-
-    ...(options.headers || {})
-  };
+function qexcToBDT(qexc) {
+    return safeNumber(qexc) * CONFIG.QEXC_TO_BDT;
+}
 
 
-  const initData = getTelegramInitData();
+function bdtToQEXC(bdt) {
+    if (!CONFIG.QEXC_TO_BDT) return 0;
 
-  if (initData) {
-    headers["X-Telegram-Init-Data"] =
-      initData;
-  }
+    return safeNumber(bdt) / CONFIG.QEXC_TO_BDT;
+}
 
 
-  const response = await fetch(
-    `${API_BASE}${endpoint}`,
-    {
-      ...options,
-      headers
+function formatDate(value) {
+    if (!value) return "-";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return "-";
     }
-  );
 
-
-  let data = null;
-
-  try {
-    data = await response.json();
-  } catch {
-    data = null;
-  }
-
-
-  if (!response.ok) {
-
-    const message =
-      data?.detail ||
-      data?.message ||
-      `Request failed (${response.status})`;
-
-    throw new Error(message);
-  }
-
-
-  return data;
+    return date.toLocaleString("en-BD", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
 }
 
 
-/* =========================================================
+function formatTime(seconds) {
+    seconds = Math.max(0, Math.floor(seconds));
+
+    const days = Math.floor(seconds / 86400);
+    seconds %= 86400;
+
+    const hours = Math.floor(seconds / 3600);
+    seconds %= 3600;
+
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+
+    if (days > 0) {
+        return `${days}d ${String(hours).padStart(2, "0")}h`;
+    }
+
+    return [
+        String(hours).padStart(2, "0"),
+        String(minutes).padStart(2, "0"),
+        String(secs).padStart(2, "0")
+    ].join(":");
+}
+
+
+function getInitials(name) {
+    const text = String(name || "Q");
+
+    const parts = text
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
+    if (!parts.length) return "Q";
+
+    if (parts.length === 1) {
+        return parts[0].slice(0, 2).toUpperCase();
+    }
+
+    return (
+        parts[0].charAt(0) +
+        parts[parts.length - 1].charAt(0)
+    ).toUpperCase();
+}
+
+
+/* =========================
+   TOAST
+========================= */
+
+function showToast(message, type = "info") {
+
+    let toast = $("toast");
+
+    if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "toast";
+
+        toast.style.position = "fixed";
+        toast.style.left = "50%";
+        toast.style.bottom = "85px";
+        toast.style.transform = "translateX(-50%)";
+        toast.style.zIndex = "99999";
+        toast.style.maxWidth = "90%";
+        toast.style.padding = "12px 18px";
+        toast.style.borderRadius = "12px";
+        toast.style.background = "#111827";
+        toast.style.color = "#fff";
+        toast.style.fontSize = "14px";
+        toast.style.fontWeight = "600";
+        toast.style.boxShadow = "0 10px 30px rgba(0,0,0,.2)";
+        toast.style.textAlign = "center";
+        toast.style.transition = "opacity .2s ease";
+
+        document.body.appendChild(toast);
+    }
+
+    toast.textContent = message;
+    toast.style.opacity = "1";
+
+    clearTimeout(toast._timer);
+
+    toast._timer = setTimeout(() => {
+        toast.style.opacity = "0";
+    }, 3000);
+}
+
+
+/* =========================
+   LOADER
+========================= */
+
+function showLoader(show = true, text = "Loading...") {
+
+    let loader = $("globalLoader");
+
+    if (!loader) {
+        loader = document.createElement("div");
+        loader.id = "globalLoader";
+
+        loader.style.position = "fixed";
+        loader.style.inset = "0";
+        loader.style.zIndex = "99998";
+        loader.style.background = "rgba(255,255,255,.88)";
+        loader.style.display = "none";
+        loader.style.alignItems = "center";
+        loader.style.justifyContent = "center";
+        loader.style.flexDirection = "column";
+        loader.style.gap = "12px";
+
+        loader.innerHTML = `
+            <div style="
+                width:34px;
+                height:34px;
+                border:3px solid #e5e7eb;
+                border-top-color:#2563eb;
+                border-radius:50%;
+                animation:qexusSpin .8s linear infinite;
+            "></div>
+            <div id="globalLoaderText"
+                style="font-size:14px;font-weight:600;color:#374151;">
+                Loading...
+            </div>
+        `;
+
+        if (!document.getElementById("qexusLoaderStyle")) {
+            const style = document.createElement("style");
+            style.id = "qexusLoaderStyle";
+            style.textContent = `
+                @keyframes qexusSpin {
+                    to { transform: rotate(360deg); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        document.body.appendChild(loader);
+    }
+
+    const loaderText = $("globalLoaderText");
+
+    if (loaderText) {
+        loaderText.textContent = text;
+    }
+
+    loader.style.display = show ? "flex" : "none";
+}
+
+
+/* =========================
+   API
+========================= */
+
+async function apiRequest(endpoint, options = {}) {
+
+    const controller = new AbortController();
+
+    const timeout = setTimeout(() => {
+        controller.abort();
+    }, CONFIG.REQUEST_TIMEOUT);
+
+    const headers = {
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+    };
+
+    /*
+      IMPORTANT:
+      Always send raw Telegram initData.
+      Never send initDataUnsafe as authentication.
+    */
+
+    if (tg && tg.initData) {
+        headers["X-Telegram-Init-Data"] = tg.initData;
+    }
+
+    try {
+
+        const response = await fetch(
+            API_BASE + endpoint,
+            {
+                ...options,
+                headers,
+                signal: controller.signal
+            }
+        );
+
+        const text = await response.text();
+
+        let data = {};
+
+        try {
+            data = text ? JSON.parse(text) : {};
+        } catch {
+            data = {
+                detail: text || "Invalid server response"
+            };
+        }
+
+        if (!response.ok) {
+
+            let message =
+                data?.detail ||
+                data?.message ||
+                `Request failed (${response.status})`;
+
+            if (Array.isArray(message)) {
+                message = message
+                    .map(item => item?.msg || String(item))
+                    .join(", ");
+            }
+
+            throw new Error(message);
+        }
+
+        return data;
+
+    } catch (error) {
+
+        if (error.name === "AbortError") {
+            throw new Error("Server response timeout");
+        }
+
+        throw error;
+
+    } finally {
+        clearTimeout(timeout);
+    }
+}
+
+
+/* =========================
    AUTH
-   ========================================================= */
+========================= */
 
 async function authenticate() {
 
-  const initData = getTelegramInitData();
+    if (!tg || !tg.initData) {
+        console.warn("Telegram initData unavailable.");
 
-  if (!initData) {
+        showToast(
+            "Telegram Mini App থেকে খুললে authentication কাজ করবে।",
+            "warning"
+        );
 
-    showToast(
-      "Telegram Mini App-এর ভিতর থেকে খুলুন।"
-    );
+        return null;
+    }
 
-    return false;
-  }
+    try {
 
+        const data = await apiRequest("/auth", {
+            method: "POST"
+        });
 
-  try {
-
-    const data =
-      await apiRequest(
-        "/auth",
-        {
-          method: "POST"
+        if (data?.user) {
+            state.user = data.user;
         }
-      );
 
+        if (data?.wallet) {
+            state.wallet = {
+                ...state.wallet,
+                ...data.wallet
+            };
+        }
 
-    if (data?.user) {
-      state.user = data.user;
+        return data;
+
+    } catch (error) {
+
+        console.error("Authentication error:", error);
+
+        showToast(
+            error.message || "Authentication failed",
+            "error"
+        );
+
+        return null;
     }
-
-
-    if (data?.wallet) {
-
-      state.wallet = {
-        ...state.wallet,
-        ...data.wallet
-      };
-
-    }
-
-
-    return true;
-
-  } catch (error) {
-
-    console.error(
-      "Authentication error:",
-      error
-    );
-
-    showToast(
-      "Account load করা যাচ্ছে না। আবার চেষ্টা করুন।"
-    );
-
-    return false;
-  }
 }
 
 
-/* =========================================================
-   USER UI
-   ========================================================= */
-
-function updateUserUI() {
-
-  if (!state.user) return;
-
-
-  const firstName =
-    state.user.first_name ||
-    state.user.username ||
-    "User";
-
-
-  const username =
-    state.user.username
-      ? `@${state.user.username}`
-      : "Telegram User";
-
-
-  if ($("userName")) {
-    $("userName").textContent =
-      firstName;
-  }
-
-
-  if ($("profileName")) {
-    $("profileName").textContent =
-      firstName;
-  }
-
-
-  if ($("profileUsername")) {
-    $("profileUsername").textContent =
-      username;
-  }
-
-
-  const initial =
-    String(firstName)
-      .trim()
-      .charAt(0)
-      .toUpperCase() || "U";
-
-
-  if ($("topAvatarText")) {
-    $("topAvatarText").textContent =
-      initial;
-  }
-
-
-  if ($("profileAvatar")) {
-    $("profileAvatar").textContent =
-      initial;
-  }
-
-
-  updateReferralLink();
-}
-
-
-/* =========================================================
-   BALANCE UI
-   ========================================================= */
-
-function getBalanceBDT() {
-
-  return (
-    Number(state.wallet.balance_qexc || 0)
-    * QEXC_TO_BDT
-  );
-}
-
-
-function formatBDT(value) {
-
-  return Number(value || 0)
-    .toFixed(2);
-}
-
-
-function updateWalletUI() {
-
-  const qexc =
-    Number(state.wallet.balance_qexc || 0);
-
-
-  const bdt =
-    qexc * QEXC_TO_BDT;
-
-
-  /* HOME */
-
-  if ($("balanceQEXC")) {
-    $("balanceQEXC").textContent =
-      qexc.toFixed(0);
-  }
-
-
-  if ($("balanceBDT")) {
-    $("balanceBDT").textContent =
-      formatBDT(bdt);
-  }
-
-
-  /* WALLET */
-
-  if ($("walletQEXC")) {
-    $("walletQEXC").textContent =
-      `${qexc.toFixed(0)} QEXC`;
-  }
-
-
-  if ($("walletBalance")) {
-    $("walletBalance").textContent =
-      `৳${formatBDT(bdt)}`;
-  }
-
-
-  if ($("totalEarned")) {
-    $("totalEarned").textContent =
-      Number(
-        state.wallet.total_earned || 0
-      ).toFixed(0);
-  }
-
-
-  if ($("totalWithdrawn")) {
-    $("totalWithdrawn").textContent =
-      Number(
-        state.wallet.total_withdrawn || 0
-      ).toFixed(0);
-  }
-
-
-  /* PROFILE */
-
-  if ($("profileEarned")) {
-    $("profileEarned").textContent =
-      Number(
-        state.wallet.total_earned || 0
-      ).toFixed(0);
-  }
-
-
-  if ($("profileWithdrawn")) {
-    $("profileWithdrawn").textContent =
-      Number(
-        state.wallet.total_withdrawn || 0
-      ).toFixed(0);
-  }
-
-
-  /* WITHDRAW */
-
-  if ($("withdrawAvailable")) {
-    $("withdrawAvailable").textContent =
-      `৳${formatBDT(bdt)}`;
-  }
-}
-
-
-/* =========================================================
-   WALLET LOAD
-   ========================================================= */
+/* =========================
+   WALLET
+========================= */
 
 async function loadWallet() {
 
-  try {
+    try {
 
-    const data =
-      await apiRequest(
-        "/wallet"
-      );
+        const data = await apiRequest("/wallet");
 
+        if (data?.wallet) {
+            state.wallet = {
+                ...state.wallet,
+                ...data.wallet
+            };
+        } else if (data) {
+            state.wallet = {
+                ...state.wallet,
+                ...data
+            };
+        }
 
-    if (data?.wallet) {
+        renderWallet();
 
-      state.wallet = {
-        ...state.wallet,
-        ...data.wallet
-      };
+        return data;
 
+    } catch (error) {
+
+        console.error("Wallet error:", error);
+
+        return null;
     }
-
-
-    updateWalletUI();
-
-  } catch (error) {
-
-    console.warn(
-      "Wallet load error:",
-      error
-    );
-  }
 }
 
 
-/* =========================================================
+/* =========================
    TRANSACTIONS
-   ========================================================= */
+========================= */
 
 async function loadTransactions() {
 
-  try {
+    try {
 
-    const data =
-      await apiRequest(
-        "/transactions"
-      );
+        const data = await apiRequest("/transactions");
 
+        if (Array.isArray(data)) {
+            state.transactions = data;
+        } else if (Array.isArray(data?.transactions)) {
+            state.transactions = data.transactions;
+        } else if (Array.isArray(data?.items)) {
+            state.transactions = data.items;
+        } else {
+            state.transactions = [];
+        }
 
-    state.transactions =
-      Array.isArray(data)
-        ? data
-        : (
-          data?.transactions || []
-        );
+        renderTransactions();
 
+        return state.transactions;
 
-    renderTransactions();
+    } catch (error) {
 
-  } catch (error) {
+        console.error("Transactions error:", error);
 
-    console.warn(
-      "Transaction error:",
-      error
-    );
-  }
+        state.transactions = [];
+
+        renderTransactions();
+
+        return [];
+    }
 }
 
+
+/* =========================
+   USER UI
+========================= */
+
+function renderUser() {
+
+    if (!state.user) return;
+
+    const firstName =
+        state.user.first_name ||
+        state.user.name ||
+        "User";
+
+    const username =
+        state.user.username
+            ? `@${state.user.username.replace(/^@/, "")}`
+            : "Telegram User";
+
+    const initials = getInitials(
+        state.user.first_name ||
+        state.user.username ||
+        "QX"
+    );
+
+    const nameElements = [
+        $("userName"),
+        $("profileName")
+    ];
+
+    nameElements.forEach(el => {
+        if (el) {
+            el.textContent = firstName;
+        }
+    });
+
+    const usernameElement = $("profileUsername");
+
+    if (usernameElement) {
+        usernameElement.textContent = username;
+    }
+
+    const avatarElements = [
+        $("profileAvatar"),
+        $("topAvatarText")
+    ];
+
+    avatarElements.forEach(el => {
+
+        if (!el) return;
+
+        if (
+            el.tagName === "IMG" &&
+            state.user.photo_url
+        ) {
+            el.src = state.user.photo_url;
+            el.alt = firstName;
+        } else {
+            el.textContent = initials;
+        }
+    });
+}
+
+
+/* =========================
+   WALLET UI
+========================= */
+
+function renderWallet() {
+
+    const balanceQEXC =
+        safeNumber(state.wallet.balance_qexc);
+
+    const balanceBDT =
+        qexcToBDT(balanceQEXC);
+
+    const totalEarned =
+        safeNumber(state.wallet.total_earned);
+
+    const totalWithdrawn =
+        safeNumber(state.wallet.total_withdrawn);
+
+    if ($("balanceQEXC")) {
+        $("balanceQEXC").textContent =
+            `${formatQEXC(balanceQEXC)} QEXC`;
+    }
+
+    if ($("balanceBDT")) {
+        $("balanceBDT").textContent =
+            `৳${balanceBDT.toFixed(2)}`;
+    }
+
+    if ($("walletBalance")) {
+        $("walletBalance").textContent =
+            `৳${balanceBDT.toFixed(2)}`;
+    }
+
+    if ($("walletQEXC")) {
+        $("walletQEXC").textContent =
+            `${formatQEXC(balanceQEXC)} QEXC`;
+    }
+
+    if ($("totalEarned")) {
+        $("totalEarned").textContent =
+            `${formatQEXC(totalEarned)} QEXC`;
+    }
+
+    if ($("totalWithdrawn")) {
+        $("totalWithdrawn").textContent =
+            `${formatQEXC(totalWithdrawn)} QEXC`;
+    }
+
+    if ($("profileEarned")) {
+        $("profileEarned").textContent =
+            `${formatQEXC(totalEarned)} QEXC`;
+    }
+
+    if ($("profileWithdrawn")) {
+        $("profileWithdrawn").textContent =
+            `${formatQEXC(totalWithdrawn)} QEXC`;
+    }
+
+    updateWithdrawAvailable();
+}
+
+
+/* =========================
+   TRANSACTIONS UI
+========================= */
 
 function renderTransactions() {
 
-  const history =
-    $("historyList");
+    const containers = [
+        $("recentTransactions"),
+        $("historyList")
+    ];
 
-  const recent =
-    $("recentTransactions");
+    containers.forEach(container => {
 
+        if (!container) return;
 
-  if (!Array.isArray(state.transactions)) {
-    state.transactions = [];
-  }
+        if (!state.transactions.length) {
 
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">◷</div>
+                    <div class="empty-title">No transactions yet</div>
+                    <div class="empty-text">
+                        Your earning and withdrawal history will appear here.
+                    </div>
+                </div>
+            `;
 
-  if (history) {
+            return;
+        }
 
-    history.innerHTML =
-      buildTransactionsHTML(
-        state.transactions
-      );
+        const list =
+            container.id === "recentTransactions"
+                ? state.transactions.slice(0, 5)
+                : state.transactions;
 
-  }
-
-
-  if (recent) {
-
-    recent.innerHTML =
-      buildTransactionsHTML(
-        state.transactions.slice(0, 5)
-      );
-
-  }
+        container.innerHTML = list
+            .map(transactionHTML)
+            .join("");
+    });
 }
 
 
-function buildTransactionsHTML(
-  transactions
-) {
+function transactionHTML(tx) {
 
-  if (!transactions.length) {
+    const type =
+        tx.type ||
+        tx.transaction_type ||
+        "transaction";
 
-    return `
-      <div class="empty-state compact">
-
-        <div class="empty-icon">
-          ◌
-        </div>
-
-        <div class="empty-title">
-          কোনো transaction নেই
-        </div>
-
-        <div class="empty-description">
-          আপনার earning ও withdrawal এখানে দেখা যাবে।
-        </div>
-
-      </div>
-    `;
-  }
-
-
-  return transactions
-    .map((tx) => {
-
-      const amount =
-        Number(
-          tx.amount_qexc ??
-          tx.qexc ??
-          tx.amount ??
-          0
+    const amount =
+        safeNumber(
+            tx.amount_qexc ??
+            tx.qexc ??
+            tx.amount
         );
 
+    const status =
+        String(tx.status || "completed")
+            .toLowerCase();
 
-      const title =
+    const positive =
+        type.includes("earn") ||
+        type.includes("reward") ||
+        type.includes("bonus") ||
+        type.includes("referral") ||
+        amount > 0 && !type.includes("withdraw");
+
+    const sign = positive ? "+" : "-";
+
+    const title =
         tx.title ||
         tx.description ||
-        tx.type ||
-        "Transaction";
+        prettyTransactionType(type);
 
+    return `
+        <div class="transaction-item">
+            <div class="transaction-left">
+                <div class="transaction-icon">
+                    ${positive ? "+" : "−"}
+                </div>
 
-      const date =
-        tx.created_at ||
-        tx.createdAt ||
-        "";
+                <div>
+                    <div class="transaction-title">
+                        ${escapeHTML(title)}
+                    </div>
 
-
-      const sign =
-        amount >= 0
-          ? "+"
-          : "";
-
-
-      const status =
-        String(
-          tx.status || ""
-        ).toLowerCase();
-
-
-      return `
-        <div class="transaction">
-
-          <div class="transaction-icon">
-            Q
-          </div>
-
-          <div class="transaction-info">
-
-            <div class="transaction-title">
-              ${escapeHTML(title)}
+                    <div class="transaction-date">
+                        ${escapeHTML(
+                            formatDate(
+                                tx.created_at ||
+                                tx.created ||
+                                tx.timestamp
+                            )
+                        )}
+                    </div>
+                </div>
             </div>
 
-            <div class="transaction-date">
-              ${escapeHTML(formatDate(date))}
+            <div class="transaction-right">
+                <div class="${positive ? "positive" : "negative"}">
+                    ${sign}${formatQEXC(Math.abs(amount))} QEXC
+                </div>
+
+                <div class="transaction-status ${escapeAttribute(status)}">
+                    ${escapeHTML(status)}
+                </div>
             </div>
-
-          </div>
-
-          <div class="transaction-amount ${amount >= 0 ? "success" : "failed"}">
-            ${sign}${amount.toFixed(0)} QEXC
-          </div>
-
         </div>
-      `;
-
-    })
-    .join("");
+    `;
 }
 
 
-/* =========================================================
+function prettyTransactionType(type) {
+
+    return String(type)
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+
+/* =========================
    DAILY BONUS
-   ========================================================= */
+========================= */
+
+async function loadDailyStatus() {
+
+    const saved =
+        localStorage.getItem("qexus_daily_next_claim");
+
+    if (saved) {
+
+        const timestamp = Number(saved);
+
+        if (
+            Number.isFinite(timestamp) &&
+            timestamp > Date.now()
+        ) {
+            state.dailyNextClaimAt = timestamp;
+        }
+    }
+
+    renderDailyStatus();
+}
+
+
+function startDailyCountdown() {
+
+    stopDailyCountdown();
+
+    state.dailyTimer = setInterval(() => {
+
+        renderDailyStatus();
+
+    }, 1000);
+
+    renderDailyStatus();
+}
+
+
+function stopDailyCountdown() {
+
+    if (state.dailyTimer) {
+        clearInterval(state.dailyTimer);
+        state.dailyTimer = null;
+    }
+}
+
+
+function renderDailyStatus() {
+
+    const box = $("dailyCountdownBox");
+    const countdown = $("dailyCountdown");
+    const status = $("homeDailyStatus");
+
+    const next =
+        state.dailyNextClaimAt;
+
+    if (!next || next <= Date.now()) {
+
+        if (countdown) {
+            countdown.textContent = "Available now";
+        }
+
+        if (status) {
+            status.textContent =
+                `Claim +${CONFIG.DAILY_BONUS_QEXC} QEXC`;
+        }
+
+        if (box) {
+            box.classList.remove("disabled");
+        }
+
+        return;
+    }
+
+    const seconds =
+        Math.ceil((next - Date.now()) / 1000);
+
+    if (countdown) {
+        countdown.textContent =
+            formatTime(seconds);
+    }
+
+    if (status) {
+        status.textContent =
+            "Next daily bonus";
+    }
+
+    if (box) {
+        box.classList.add("disabled");
+    }
+
+    if (seconds <= 0) {
+        state.dailyNextClaimAt = null;
+
+        localStorage.removeItem(
+            "qexus_daily_next_claim"
+        );
+    }
+}
+
 
 async function claimDailyBonus() {
 
-  const button =
-    $("dailyBonusButton");
+    if (state.dailyLoading) return;
 
-
-  if (button) {
-    button.disabled = true;
-  }
-
-
-  try {
-
-    const data =
-      await apiRequest(
-        "/rewards/daily",
-        {
-          method: "POST"
-        }
-      );
-
-
-    if (data?.wallet) {
-
-      state.wallet = {
-        ...state.wallet,
-        ...data.wallet
-      };
-
+    if (
+        state.dailyNextClaimAt &&
+        state.dailyNextClaimAt > Date.now()
+    ) {
+        showToast(
+            "Daily bonus এখনো available হয়নি।",
+            "warning"
+        );
+        return;
     }
 
+    state.dailyLoading = true;
 
-    if (data?.next_claim_at) {
+    try {
 
-      state.dailyNextClaimAt =
-        data.next_claim_at;
+        const data =
+            await apiRequest("/rewards/daily", {
+                method: "POST"
+            });
 
-    } else {
+        const reward =
+            safeNumber(
+                data?.reward_qexc ??
+                data?.amount_qexc ??
+                CONFIG.DAILY_BONUS_QEXC
+            );
 
-      state.dailyNextClaimAt =
-        Date.now() + (
-          24 * 60 * 60 * 1000
+        let nextClaim =
+            data?.next_claim_at ||
+            data?.next_available_at;
+
+        if (nextClaim) {
+
+            const parsed =
+                new Date(nextClaim).getTime();
+
+            if (Number.isFinite(parsed)) {
+                state.dailyNextClaimAt = parsed;
+            }
+
+        } else {
+
+            state.dailyNextClaimAt =
+                Date.now() +
+                CONFIG.DAILY_COOLDOWN_MS;
+        }
+
+        localStorage.setItem(
+            "qexus_daily_next_claim",
+            String(state.dailyNextClaimAt)
         );
 
+        if (data?.wallet) {
+            state.wallet = {
+                ...state.wallet,
+                ...data.wallet
+            };
+        } else {
+            await loadWallet();
+        }
+
+        await loadTransactions();
+
+        renderDailyStatus();
+
+        showToast(
+            `Daily bonus: +${formatQEXC(reward)} QEXC`,
+            "success"
+        );
+
+    } catch (error) {
+
+        console.error("Daily bonus error:", error);
+
+        showToast(
+            error.message || "Daily bonus claim failed",
+            "error"
+        );
+
+    } finally {
+
+        state.dailyLoading = false;
     }
-
-
-    localStorage.setItem(
-      "qexus_daily_next",
-      String(
-        state.dailyNextClaimAt
-      )
-    );
-
-
-    updateWalletUI();
-
-    updateDailyCountdown();
-
-    await loadTransactions();
-
-
-    showToast(
-      `+${DAILY_BONUS_QEXC} QEXC Daily Bonus পেয়েছেন!`
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      "Daily bonus error:",
-      error
-    );
-
-
-    showToast(
-      error.message ||
-      "Daily Bonus নেওয়া যায়নি।"
-    );
-
-
-    updateDailyCountdown();
-
-  } finally {
-
-    if (button) {
-      button.disabled = false;
-    }
-
-  }
 }
 
 
-/* =========================================================
-   DAILY COUNTDOWN
-   ========================================================= */
-
-function loadSavedDailyTimer() {
-
-  const saved =
-    localStorage.getItem(
-      "qexus_daily_next"
-    );
-
-
-  if (saved) {
-
-    const timestamp =
-      Number(saved);
-
-
-    if (
-      Number.isFinite(timestamp) &&
-      timestamp > Date.now()
-    ) {
-
-      state.dailyNextClaimAt =
-        timestamp;
-
-    }
-
-  }
-
-
-  updateDailyCountdown();
-}
-
-
-function updateDailyCountdown() {
-
-  const countdown =
-    $("dailyCountdown");
-
-  const homeStatus =
-    $("homeDailyStatus");
-
-  const button =
-    $("dailyBonusButton");
-
-
-  if (!countdown) return;
-
-
-  if (state.dailyTimer) {
-
-    clearInterval(
-      state.dailyTimer
-    );
-
-  }
-
-
-  function render() {
-
-    if (!state.dailyNextClaimAt) {
-
-      countdown.textContent =
-        "Available";
-
-      if (homeStatus) {
-        homeStatus.textContent =
-          "আজকের bonus সংগ্রহ করুন";
-      }
-
-      if (button) {
-        button.disabled = false;
-      }
-
-      return;
-    }
-
-
-    const remaining =
-      Number(
-        state.dailyNextClaimAt
-      ) - Date.now();
-
-
-    if (remaining <= 0) {
-
-      state.dailyNextClaimAt =
-        null;
-
-      localStorage.removeItem(
-        "qexus_daily_next"
-      );
-
-
-      countdown.textContent =
-        "Available";
-
-
-      if (homeStatus) {
-        homeStatus.textContent =
-          "আজকের bonus সংগ্রহ করুন";
-      }
-
-
-      if (button) {
-        button.disabled = false;
-      }
-
-
-      return;
-    }
-
-
-    const totalSeconds =
-      Math.floor(
-        remaining / 1000
-      );
-
-
-    const hours =
-      Math.floor(
-        totalSeconds / 3600
-      );
-
-
-    const minutes =
-      Math.floor(
-        (totalSeconds % 3600) / 60
-      );
-
-
-    const seconds =
-      totalSeconds % 60;
-
-
-    countdown.textContent =
-      `${String(hours).padStart(2, "0")}:` +
-      `${String(minutes).padStart(2, "0")}:` +
-      `${String(seconds).padStart(2, "0")}`;
-
-
-    if (homeStatus) {
-
-      homeStatus.textContent =
-        `পরবর্তী bonus ${String(hours).padStart(2, "0")}:` +
-        `${String(minutes).padStart(2, "0")}:` +
-        `${String(seconds).padStart(2, "0")} পরে`;
-    }
-
-
-    if (button) {
-      button.disabled = true;
-    }
-
-  }
-
-
-  render();
-
-
-  state.dailyTimer =
-    setInterval(
-      render,
-      1000
-    );
-}
-
-
-/* =========================================================
+/* =========================
    ADSGRAM
-   ========================================================= */
+========================= */
 
-function initializeAdsgram() {
-
-  try {
+function initAdsGram() {
 
     if (
-      !window.Adsgram ||
-      typeof window.Adsgram.init !== "function"
+        !window.Adsgram ||
+        typeof window.Adsgram.init !== "function"
     ) {
+        console.warn(
+            "AdsGram SDK not available."
+        );
 
-      console.warn(
-        "AdsGram SDK not available."
-      );
+        updateAdStatus(
+            "Ads are currently unavailable."
+        );
 
-      setAdStatus(
-        "AdsGram লোড হয়নি।"
-      );
-
-      return false;
+        return false;
     }
 
+    try {
 
-    state.adController =
-      window.Adsgram.init({
-        blockId: ADSGRAM_BLOCK_ID
-      });
+        state.adController =
+            window.Adsgram.init({
+                blockId: ADSGRAM_BLOCK_ID
+            });
 
+        if (
+            state.adController &&
+            typeof state.adController.onReward === "function"
+        ) {
 
-    setAdStatus(
-      "বিজ্ঞাপন দেখার জন্য প্রস্তুত।"
-    );
+            state.adController.onReward(() => {
 
+                console.log(
+                    "AdsGram reward event received."
+                );
 
-    return true;
+            });
+        }
 
-  } catch (error) {
+        if (
+            state.adController &&
+            typeof state.adController.onComplete === "function"
+        ) {
 
-    console.error(
-      "AdsGram initialization error:",
-      error
-    );
+            state.adController.onComplete(() => {
 
+                console.log(
+                    "AdsGram ad completed."
+                );
 
-    setAdStatus(
-      "বিজ্ঞাপন বর্তমানে unavailable"
-    );
+            });
+        }
 
+        if (
+            state.adController &&
+            typeof state.adController.onSkip === "function"
+        ) {
 
-    return false;
-  }
+            state.adController.onSkip(() => {
+
+                console.log(
+                    "AdsGram ad skipped."
+                );
+
+            });
+        }
+
+        if (
+            state.adController &&
+            typeof state.adController.onError === "function"
+        ) {
+
+            state.adController.onError(error => {
+
+                console.error(
+                    "AdsGram error:",
+                    error
+                );
+
+            });
+        }
+
+        updateAdStatus(
+            "Watch the ad completely to earn QEXC."
+        );
+
+        return true;
+
+    } catch (error) {
+
+        console.error(
+            "AdsGram initialization error:",
+            error
+        );
+
+        updateAdStatus(
+            "Ads are currently unavailable."
+        );
+
+        return false;
+    }
 }
 
 
-function setAdStatus(message) {
+function updateAdStatus(message) {
 
-  const status =
-    $("adStatus");
+    const status = $("adStatus");
 
-  if (status) {
-    status.textContent =
-      message;
-  }
+    if (status) {
+        status.textContent = message;
+    }
 }
 
 
-/* =========================================================
-   WATCH REWARDED AD
-   ========================================================= */
+function setWatchAdButtonLoading(loading) {
 
-async function watchAd() {
+    const button = $("watchAdButton");
 
-  if (state.adLoading) {
-    return;
-  }
+    if (!button) return;
 
+    button.disabled = loading;
 
-  if (!state.adController) {
+    if (loading) {
+        button.dataset.originalText =
+            button.textContent;
 
-    const initialized =
-      initializeAdsgram();
+        button.textContent =
+            "Loading ad...";
+    } else {
 
-
-    if (!initialized) {
-
-      showToast(
-        "বিজ্ঞাপন এখনো প্রস্তুত হয়নি।"
-      );
-
-      return;
+        button.textContent =
+            button.dataset.originalText ||
+            "Watch Ad";
     }
-  }
-
-
-  const button =
-    $("watchAdButton");
-
-
-  state.adLoading = true;
-
-
-  if (button) {
-    button.disabled = true;
-    button.textContent =
-      "বিজ্ঞাপন লোড হচ্ছে...";
-  }
-
-
-  setAdStatus(
-    "বিজ্ঞাপন লোড হচ্ছে..."
-  );
-
-
-  try {
-
-    /*
-     * AdsGram Reward format:
-     * show() resolves when the rewarded ad
-     * has been watched till the end.
-     */
-
-    const result =
-      await state.adController.show();
-
-
-    console.log(
-      "AdsGram result:",
-      result
-    );
-
-
-    /*
-     * Reward only after successful completion.
-     */
-
-    setAdStatus(
-      "বিজ্ঞাপন সম্পূর্ণ হয়েছে। Reward যাচাই হচ্ছে..."
-    );
-
-
-    await requestAdReward();
-
-
-  } catch (error) {
-
-    console.warn(
-      "AdsGram show error:",
-      error
-    );
-
-
-    setAdStatus(
-      "বিজ্ঞাপন সম্পূর্ণ হয়নি।"
-    );
-
-
-    showToast(
-      "বিজ্ঞাপন সম্পূর্ণ না হওয়ায় কোনো QEXC দেওয়া হয়নি।"
-    );
-
-  } finally {
-
-    state.adLoading = false;
-
-
-    if (button) {
-
-      button.disabled = false;
-
-      button.textContent =
-        "বিজ্ঞাপন দেখুন";
-
-    }
-
-  }
 }
 
 
-/* =========================================================
-   REQUEST AD REWARD FROM BACKEND
-   ========================================================= */
+/*
+  IMPORTANT:
+  This endpoint is only compatible with the current
+  backend TEST reward implementation.
+
+  For production:
+  replace this with a secure server-side
+  AdsGram reward verification/callback system.
+*/
 
 async function requestAdReward() {
 
-  try {
-
-    /*
-     * IMPORTANT:
-     * Reward must come from backend.
-     * Never add QEXC directly in browser.
-     */
-
-    const data =
-      await apiRequest(
-        "/rewards/ad",
-        {
-          method: "POST",
-
-          body: JSON.stringify({
+    return await apiRequest("/rewards/ad", {
+        method: "POST",
+        body: JSON.stringify({
             block_id: ADSGRAM_BLOCK_ID
-          })
-        }
-      );
-
-
-    if (data?.wallet) {
-
-      state.wallet = {
-        ...state.wallet,
-        ...data.wallet
-      };
-
-    }
-
-
-    updateWalletUI();
-
-    await loadTransactions();
-
-
-    setAdStatus(
-      `বিজ্ঞাপন সম্পূর্ণ হয়েছে — +${AD_REWARD_QEXC} QEXC`
-    );
-
-
-    showToast(
-      `+${AD_REWARD_QEXC} QEXC পেয়েছেন!`
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      "Ad reward backend error:",
-      error
-    );
-
-
-    setAdStatus(
-      "Reward যাচাই করা যায়নি।"
-    );
-
-
-    showToast(
-      "বিজ্ঞাপন দেখা হয়েছে, কিন্তু reward এখনো যাচাই হয়নি।"
-    );
-
-  }
+        })
+    });
 }
 
 
-/* =========================================================
+async function watchAd() {
+
+    if (state.adLoading) return;
+
+    if (!state.adController) {
+
+        const initialized =
+            initAdsGram();
+
+        if (!initialized) {
+
+            showToast(
+                "এই মুহূর্তে কোনো বিজ্ঞাপন available নেই।",
+                "warning"
+            );
+
+            return;
+        }
+    }
+
+    state.adLoading = true;
+
+    setWatchAdButtonLoading(true);
+
+    updateAdStatus(
+        "Advertisement loading..."
+    );
+
+    try {
+
+        /*
+          AdsGram resolves show() after
+          the rewarded ad has been completed.
+        */
+
+        await state.adController.show();
+
+        updateAdStatus(
+            "Ad completed. Processing reward..."
+        );
+
+        /*
+          Current backend endpoint is TEST ONLY.
+          Production should verify reward server-side.
+        */
+
+        const rewardData =
+            await requestAdReward();
+
+        const reward =
+            safeNumber(
+                rewardData?.reward_qexc ??
+                rewardData?.amount_qexc ??
+                CONFIG.AD_REWARD_QEXC
+            );
+
+        if (rewardData?.wallet) {
+
+            state.wallet = {
+                ...state.wallet,
+                ...rewardData.wallet
+            };
+
+        } else {
+
+            await loadWallet();
+        }
+
+        await loadTransactions();
+
+        updateAdStatus(
+            `+${formatQEXC(reward)} QEXC added`
+        );
+
+        showToast(
+            `অভিনন্দন! +${formatQEXC(reward)} QEXC পেয়েছো।`,
+            "success"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Rewarded ad error:",
+            error
+        );
+
+        updateAdStatus(
+            "Watch cancelled or ad unavailable."
+        );
+
+        showToast(
+            "বিজ্ঞাপন সম্পূর্ণ হয়নি, তাই reward দেওয়া হয়নি।",
+            "warning"
+        );
+
+    } finally {
+
+        state.adLoading = false;
+
+        setWatchAdButtonLoading(false);
+    }
+}
+
+
+/* =========================
    TASKS
-   ========================================================= */
+========================= */
 
 async function loadTasks() {
 
-  try {
+    const container = $("taskList");
 
-    const data =
-      await apiRequest(
-        "/tasks"
-      );
+    if (container) {
 
+        container.innerHTML = `
+            <div class="loading-state">
+                Loading tasks...
+            </div>
+        `;
+    }
 
-    state.tasks =
-      Array.isArray(data)
-        ? data
-        : (
-          data?.tasks || []
+    try {
+
+        const data =
+            await apiRequest("/tasks");
+
+        if (Array.isArray(data)) {
+            state.tasks = data;
+        } else if (Array.isArray(data?.tasks)) {
+            state.tasks = data.tasks;
+        } else if (Array.isArray(data?.items)) {
+            state.tasks = data.items;
+        } else {
+            state.tasks = [];
+        }
+
+        renderTasks();
+
+        return state.tasks;
+
+    } catch (error) {
+
+        console.error(
+            "Tasks error:",
+            error
         );
 
+        state.tasks = [];
 
-    renderTasks();
+        if (container) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-title">
+                        Tasks unavailable
+                    </div>
 
+                    <div class="empty-text">
+                        Please try again later.
+                    </div>
+                </div>
+            `;
+        }
 
-  } catch (error) {
-
-    console.warn(
-      "Tasks error:",
-      error
-    );
-
-
-    state.tasks = [];
-
-    renderTasks();
-  }
+        return [];
+    }
 }
 
 
 function renderTasks() {
 
-  const container =
-    $("taskList");
+    const container = $("taskList");
 
-  const count =
-    $("taskCount");
+    if (!container) return;
 
+    if (!state.tasks.length) {
 
-  if (count) {
-    count.textContent =
-      state.tasks.length;
-  }
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">✓</div>
 
-
-  if (!container) return;
-
-
-  if (!state.tasks.length) {
-
-    container.innerHTML = `
-      <div class="empty-state">
-
-        <div class="empty-icon">
-          ✓
-        </div>
-
-        <div class="empty-title">
-          এখন কোনো Task নেই
-        </div>
-
-        <div class="empty-description">
-          নতুন task available হলে এখানে দেখা যাবে।
-        </div>
-
-      </div>
-    `;
-
-    return;
-  }
-
-
-  container.innerHTML =
-    state.tasks
-      .map(
-        (task) => {
-
-          const reward =
-            Number(
-              task.reward_qexc ??
-              task.reward ??
-              0
-            );
-
-
-          const completed =
-            Boolean(
-              task.completed
-            );
-
-
-          return `
-            <div class="task-card">
-
-              <div class="task-icon">
-                ✓
-              </div>
-
-              <div class="task-info">
-
-                <div class="task-title">
-                  ${escapeHTML(
-                    task.title ||
-                    "Task"
-                  )}
+                <div class="empty-title">
+                    No tasks available
                 </div>
 
-                <div class="task-meta">
-                  ${escapeHTML(
-                    task.description ||
-                    "Task complete করুন"
-                  )}
+                <div class="empty-text">
+                    New tasks will appear here.
                 </div>
-
-              </div>
-
-              <div class="task-reward">
-                +${reward} QEXC
-
-                <button
-                  type="button"
-                  class="secondary-btn"
-                  ${
-                    completed
-                      ? "disabled"
-                      : ""
-                  }
-                  onclick="completeTask('${escapeAttribute(task.id)}')"
-                >
-                  ${
-                    completed
-                      ? "Done"
-                      : "Complete"
-                  }
-                </button>
-
-              </div>
-
             </div>
-          `;
-        }
-      )
-      .join("");
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        state.tasks
+            .map(renderTaskHTML)
+            .join("");
 }
 
 
-/* =========================================================
-   COMPLETE TASK
-   ========================================================= */
+function renderTaskHTML(task) {
+
+    const id =
+        task.id ??
+        task.task_id;
+
+    const title =
+        task.title ||
+        task.name ||
+        "Task";
+
+    const description =
+        task.description ||
+        "Complete this task to earn QEXC.";
+
+    const reward =
+        safeNumber(
+            task.reward_qexc ??
+            task.reward ??
+            task.amount_qexc
+        );
+
+    const completed =
+        Boolean(
+            task.completed ||
+            task.is_completed ||
+            task.status === "completed"
+        );
+
+    return `
+        <div class="task-card">
+
+            <div class="task-info">
+
+                <div class="task-title">
+                    ${escapeHTML(title)}
+                </div>
+
+                <div class="task-description">
+                    ${escapeHTML(description)}
+                </div>
+
+                <div class="task-reward">
+                    +${formatQEXC(reward)} QEXC
+                </div>
+
+            </div>
+
+            <button
+                class="task-button"
+                ${completed ? "disabled" : ""}
+                onclick="completeTask('${escapeAttribute(id)}')"
+            >
+                ${completed ? "Completed" : "Complete"}
+            </button>
+
+        </div>
+    `;
+}
+
 
 async function completeTask(taskId) {
 
-  if (!taskId) return;
+    if (!taskId) return;
 
+    try {
 
-  try {
+        const data =
+            await apiRequest(
+                `/tasks/${encodeURIComponent(taskId)}/complete`,
+                {
+                    method: "POST"
+                }
+            );
 
-    const data =
-      await apiRequest(
-        `/tasks/${encodeURIComponent(taskId)}/complete`,
-        {
-          method: "POST"
+        const reward =
+            safeNumber(
+                data?.reward_qexc ??
+                data?.amount_qexc
+            );
+
+        if (data?.wallet) {
+
+            state.wallet = {
+                ...state.wallet,
+                ...data.wallet
+            };
+
+        } else {
+
+            await loadWallet();
         }
-      );
 
+        await loadTransactions();
+        await loadTasks();
 
-    if (data?.wallet) {
+        showToast(
+            reward > 0
+                ? `Task complete! +${formatQEXC(reward)} QEXC`
+                : "Task completed successfully.",
+            "success"
+        );
 
-      state.wallet = {
-        ...state.wallet,
-        ...data.wallet
-      };
+    } catch (error) {
 
+        console.error(
+            "Task completion error:",
+            error
+        );
+
+        showToast(
+            error.message ||
+            "Task could not be completed.",
+            "error"
+        );
     }
-
-
-    updateWalletUI();
-
-    await loadTransactions();
-
-    await loadTasks();
-
-
-    showToast(
-      "Task complete হয়েছে!"
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      "Task completion error:",
-      error
-    );
-
-
-    showToast(
-      error.message ||
-      "Task complete করা যায়নি।"
-    );
-  }
 }
 
 
-/* =========================================================
+/* =========================
    LEADERBOARD
-   ========================================================= */
+========================= */
 
-async function loadLeaderboard(
-  period = "all"
-) {
+async function loadLeaderboard() {
 
-  setActiveLeaderboardTab(
-    period
-  );
+    try {
 
+        const data =
+            await apiRequest("/leaderboard");
 
-  const list =
-    $("leaderboardList");
+        if (Array.isArray(data)) {
+            state.leaderboard = data;
+        } else if (Array.isArray(data?.leaderboard)) {
+            state.leaderboard = data.leaderboard;
+        } else if (Array.isArray(data?.items)) {
+            state.leaderboard = data.items;
+        } else {
+            state.leaderboard = [];
+        }
 
-  const top =
-    $("leaderboardTop");
+        renderLeaderboard();
 
+        return state.leaderboard;
 
-  if (list) {
+    } catch (error) {
 
-    list.innerHTML = `
-      <div class="leaderboard-loading">
-        Leaderboard লোড হচ্ছে...
-      </div>
-    `;
-  }
-
-
-  try {
-
-    const data =
-      await apiRequest(
-        `/leaderboard?period=${encodeURIComponent(period)}`
-      );
-
-
-    state.leaderboard =
-      Array.isArray(data)
-        ? data
-        : (
-          data?.leaderboard || []
+        console.warn(
+            "Leaderboard unavailable:",
+            error.message
         );
 
+        state.leaderboard = [];
 
-    renderLeaderboard();
+        renderLeaderboard();
 
-
-  } catch (error) {
-
-    console.warn(
-      "Leaderboard unavailable:",
-      error
-    );
-
-
-    if (list) {
-
-      list.innerHTML = `
-        <div class="empty-state">
-
-          <div class="empty-icon">
-            ★
-          </div>
-
-          <div class="empty-title">
-            Leaderboard unavailable
-          </div>
-
-          <div class="empty-description">
-            Leaderboard service এখনো প্রস্তুত হয়নি।
-          </div>
-
-        </div>
-      `;
-
+        return [];
     }
-
-
-    if (top) {
-      top.innerHTML = "";
-    }
-  }
-}
-
-
-function setActiveLeaderboardTab(
-  period
-) {
-
-  document
-    .querySelectorAll(
-      ".leaderboard-tab"
-    )
-    .forEach(
-      (button) => {
-
-        button.classList.toggle(
-          "active",
-          button.dataset.period === period
-        );
-
-      }
-    );
 }
 
 
 function renderLeaderboard() {
 
-  const top =
-    $("leaderboardTop");
+    const container =
+        $("leaderboardList");
 
-  const list =
-    $("leaderboardList");
+    if (!container) return;
 
+    if (!state.leaderboard.length) {
 
-  if (!state.leaderboard.length) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">#</div>
 
-    if (top) {
-      top.innerHTML = "";
+                <div class="empty-title">
+                    Leaderboard unavailable
+                </div>
+
+                <div class="empty-text">
+                    Rankings will appear when data is available.
+                </div>
+            </div>
+        `;
+
+        return;
     }
 
-    if (list) {
+    container.innerHTML =
+        state.leaderboard
+            .slice(0, 100)
+            .map((item, index) => {
 
-      list.innerHTML = `
-        <div class="empty-state">
-
-          <div class="empty-icon">
-            ★
-          </div>
-
-          <div class="empty-title">
-            এখনো কোনো ranking নেই
-          </div>
-
-        </div>
-      `;
-
-    }
-
-    return;
-  }
-
-
-  const first =
-    state.leaderboard
-      .slice(0, 3);
-
-
-  if (top) {
-
-    top.innerHTML =
-      first
-        .map(
-          (item, index) => {
-
-            return `
-              <div class="leaderboard-top-item">
-
-                <div>
-                  #${index + 1}
-                </div>
-
-                <strong>
-                  ${escapeHTML(
-                    item.username ||
+                const name =
                     item.first_name ||
-                    "User"
-                  )}
-                </strong>
-
-                <span>
-                  ${Number(
-                    item.total_earned ||
-                    item.earned ||
-                    item.qexc ||
-                    0
-                  ).toFixed(0)} QEXC
-                </span>
-
-              </div>
-            `;
-          }
-        )
-        .join("");
-
-  }
-
-
-  if (list) {
-
-    list.innerHTML =
-      state.leaderboard
-        .map(
-          (item, index) => {
-
-            return `
-              <div class="leaderboard-item">
-
-                <div class="leaderboard-rank">
-                  #${index + 1}
-                </div>
-
-                <div class="leaderboard-user">
-                  ${escapeHTML(
+                    item.name ||
                     item.username ||
-                    item.first_name ||
-                    "User"
-                  )}
-                </div>
+                    "User";
 
-                <div class="leaderboard-score">
-                  ${Number(
-                    item.total_earned ||
-                    item.earned ||
-                    item.qexc ||
-                    0
-                  ).toFixed(0)}
-                  QEXC
-                </div>
+                const username =
+                    item.username
+                        ? `@${String(item.username).replace(/^@/, "")}`
+                        : "";
 
-              </div>
-            `;
+                const score =
+                    safeNumber(
+                        item.balance_qexc ??
+                        item.total_earned ??
+                        item.qexc ??
+                        item.score
+                    );
 
-          }
-        )
-        .join("");
-  }
+                return `
+                    <div class="leaderboard-row">
+
+                        <div class="leaderboard-rank">
+                            ${index + 1}
+                        </div>
+
+                        <div class="leaderboard-user">
+                            <div class="leaderboard-avatar">
+                                ${escapeHTML(
+                                    getInitials(name)
+                                )}
+                            </div>
+
+                            <div>
+                                <div class="leaderboard-name">
+                                    ${escapeHTML(name)}
+                                </div>
+
+                                <div class="leaderboard-username">
+                                    ${escapeHTML(username)}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="leaderboard-score">
+                            ${formatQEXC(score)} QEXC
+                        </div>
+
+                    </div>
+                `;
+            })
+            .join("");
 }
 
 
-/* =========================================================
-   WITHDRAW
-   ========================================================= */
+/* =========================
+   WITHDRAWAL
+========================= */
 
 function openWithdrawModal() {
 
-  const modal =
-    $("withdrawModal");
+    const modal =
+        $("withdrawModal");
 
-  if (!modal) return;
+    if (!modal) {
+        showToast(
+            "Withdrawal form পাওয়া যায়নি।",
+            "error"
+        );
+        return;
+    }
 
+    updateWithdrawAvailable();
 
-  updateWalletUI();
+    const amountInput =
+        $("withdrawAmount");
 
-  modal.classList.add("show");
+    const numberInput =
+        $("withdrawNumber");
 
-  if (tg?.BackButton) {
-    try {
-      tg.BackButton.show();
-      tg.BackButton.onClick(
-        closeWithdrawModal
-      );
-    } catch {}
-  }
+    if (amountInput) {
+        amountInput.value = "";
+    }
+
+    if (numberInput) {
+        numberInput.value = "";
+    }
+
+    modal.classList.add("active");
+    modal.classList.add("show");
+
+    modal.style.display = "flex";
+
+    if (typeof tg?.BackButton?.show === "function") {
+        tg.BackButton.show();
+    }
 }
 
 
 function closeWithdrawModal() {
 
-  const modal =
-    $("withdrawModal");
+    const modal =
+        $("withdrawModal");
 
-  if (!modal) return;
+    if (!modal) return;
 
-  modal.classList.remove("show");
+    modal.classList.remove("active");
+    modal.classList.remove("show");
 
-  if (tg?.BackButton) {
-    try {
-      tg.BackButton.hide();
-    } catch {}
-  }
+    modal.style.display = "none";
+
+    if (
+        state.currentPage === "home" &&
+        typeof tg?.BackButton?.hide === "function"
+    ) {
+        tg.BackButton.hide();
+    }
 }
 
 
-function selectWithdrawMethod(
-  method
-) {
+function updateWithdrawAvailable() {
 
-  state.withdrawMethod =
-    method;
+    const balance =
+        safeNumber(state.wallet.balance_qexc);
+
+    const bdt =
+        qexcToBDT(balance);
+
+    const element =
+        $("withdrawAvailable");
+
+    if (element) {
+
+        element.textContent =
+            `Available: ৳${bdt.toFixed(2)} (${formatQEXC(balance)} QEXC)`;
+    }
+}
 
 
-  document
-    .querySelectorAll(
-      ".method-btn"
-    )
-    .forEach(
-      (button) => {
+function selectWithdrawMethod(method) {
+
+    if (
+        method !== "bKash" &&
+        method !== "Nagad"
+    ) {
+        return;
+    }
+
+    state.withdrawMethod = method;
+
+    $$("[data-method]").forEach(button => {
+
+        const buttonMethod =
+            button.dataset.method;
 
         button.classList.toggle(
-          "active",
-          button.dataset.method === method
+            "active",
+            buttonMethod === method
         );
 
-      }
-    );
+        button.setAttribute(
+            "aria-selected",
+            buttonMethod === method
+                ? "true"
+                : "false"
+        );
+    });
+}
+
+
+function validateBDPhone(number) {
+
+    const clean =
+        String(number || "")
+            .replace(/\s+/g, "");
+
+    return /^01[3-9]\d{8}$/.test(clean);
 }
 
 
 async function submitWithdrawal() {
 
-  const amountInput =
-    $("withdrawAmount");
-
-  const numberInput =
-    $("withdrawNumber");
-
-  const button =
-    $("withdrawSubmit");
-
-
-  const amount =
-    Number(
-      amountInput?.value || 0
-    );
-
-
-  const number =
-    String(
-      numberInput?.value || ""
-    ).trim();
-
-
-  if (
-    amount < MIN_WITHDRAW_BDT
-  ) {
-
-    showToast(
-      `Minimum withdrawal ৳${MIN_WITHDRAW_BDT}`
-    );
-
-    return;
-  }
-
-
-  if (
-    !state.withdrawMethod
-  ) {
-
-    showToast(
-      "Payment method নির্বাচন করুন।"
-    );
-
-    return;
-  }
-
-
-  if (
-    !/^01\d{9}$/.test(number)
-  ) {
-
-    showToast(
-      "সঠিক 11-digit mobile number দিন।"
-    );
-
-    return;
-  }
-
-
-  if (
-    getBalanceBDT() < amount
-  ) {
-
-    showToast(
-      "আপনার balance যথেষ্ট নয়।"
-    );
-
-    return;
-  }
-
-
-  if (button) {
-    button.disabled = true;
-    button.textContent =
-      "Submitting...";
-  }
-
-
-  try {
-
-    const data =
-      await apiRequest(
-        "/withdrawals",
-        {
-          method: "POST",
-
-          body: JSON.stringify({
-
-            amount_bdt:
-              amount,
-
-            method:
-              state.withdrawMethod,
-
-            account_number:
-              number
-
-          })
-        }
-      );
-
-
-    if (data?.wallet) {
-
-      state.wallet = {
-        ...state.wallet,
-        ...data.wallet
-      };
-
-    }
-
-
-    updateWalletUI();
-
-    await loadTransactions();
-
-
-    closeWithdrawModal();
-
-
-    if (amountInput) {
-      amountInput.value = "";
-    }
-
-
-    if (numberInput) {
-      numberInput.value = "";
-    }
-
-
-    showToast(
-      "Withdrawal request submitted!"
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      "Withdrawal error:",
-      error
-    );
-
-
-    showToast(
-      error.message ||
-      "Withdrawal request করা যায়নি।"
-    );
-
-  } finally {
-
-    if (button) {
-
-      button.disabled = false;
-
-      button.textContent =
-        "Request Withdrawal";
-
-    }
-  }
-}
-
-
-/* =========================================================
-   REFERRAL
-   ========================================================= */
-
-function updateReferralLink() {
-
-  const input =
-    $("referralLink");
-
-  if (!input) return;
-
-
-  if (!state.user?.telegram_id) {
-
-    input.value = "";
-
-    return;
-  }
-
-
-  input.value =
-    `https://t.me/${REFERRAL_BOT}?start=ref_${state.user.telegram_id}`;
-}
-
-
-async function copyReferral() {
-
-  const input =
-    $("referralLink");
-
-
-  if (!input?.value) {
-
-    showToast(
-      "Referral link এখনো প্রস্তুত হয়নি।"
-    );
-
-    return;
-  }
-
-
-  try {
-
-    await navigator.clipboard.writeText(
-      input.value
-    );
-
-
-    showToast(
-      "Referral link copied!"
-    );
-
-  } catch {
-
-    input.select();
-
-    document.execCommand(
-      "copy"
-    );
-
-    showToast(
-      "Referral link copied!"
-    );
-  }
-}
-
-
-function shareReferral() {
-
-  const input =
-    $("referralLink");
-
-
-  if (!input?.value) {
-    return;
-  }
-
-
-  const text =
-    encodeURIComponent(
-      "QEXUS-এ join করে rewards earn করুন!"
-    );
-
-
-  const url =
-    `https://t.me/share/url?url=${encodeURIComponent(input.value)}&text=${text}`;
-
-
-  if (tg?.openTelegramLink) {
-
-    tg.openTelegramLink(
-      url
-    );
-
-  } else {
-
-    window.open(
-      url,
-      "_blank"
-    );
-
-  }
-}
-
-
-/* =========================================================
-   NAVIGATION
-   ========================================================= */
-
-function navigate(page) {
-
-  const pages =
-    document.querySelectorAll(
-      ".page"
-    );
-
-
-  pages.forEach(
-    (section) => {
-
-      section.classList.toggle(
-        "active",
-        section.id ===
-          `page-${page}`
-      );
-
-    }
-  );
-
-
-  document
-    .querySelectorAll(
-      ".nav-item"
-    )
-    .forEach(
-      (button) => {
-
-        button.classList.toggle(
-          "active",
-          button.dataset.page === page
+    const amountInput =
+        $("withdrawAmount");
+
+    const numberInput =
+        $("withdrawNumber");
+
+    const amount =
+        safeNumber(
+            amountInput?.value
         );
 
-      }
-    );
+    const accountNumber =
+        String(
+            numberInput?.value || ""
+        ).replace(/\s+/g, "");
 
+    if (amount < CONFIG.MIN_WITHDRAW_BDT) {
 
-  state.currentPage =
-    page;
+        showToast(
+            `Minimum withdrawal ৳${CONFIG.MIN_WITHDRAW_BDT}`,
+            "warning"
+        );
 
+        return;
+    }
 
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
+    if (!validateBDPhone(accountNumber)) {
 
+        showToast(
+            "সঠিক bKash/Nagad নম্বর দিন।",
+            "warning"
+        );
 
-  if (page === "wallet") {
+        return;
+    }
 
-    loadWallet();
-    loadTransactions();
+    const availableBDT =
+        qexcToBDT(
+            safeNumber(
+                state.wallet.balance_qexc
+            )
+        );
 
-  }
+    if (amount > availableBDT) {
 
+        showToast(
+            "আপনার balance যথেষ্ট নেই।",
+            "warning"
+        );
 
-  if (page === "tasks") {
+        return;
+    }
 
-    loadTasks();
+    const button =
+        $("withdrawSubmit");
 
-  }
-
-
-  if (page === "leaderboard") {
-
-    loadLeaderboard("all");
-
-  }
-
-
-  if (tg?.BackButton) {
+    if (button) {
+        button.disabled = true;
+        button.textContent =
+            "Submitting...";
+    }
 
     try {
 
-      if (page === "home") {
-        tg.BackButton.hide();
-      } else {
-        tg.BackButton.show();
-      }
+        const data =
+            await apiRequest(
+                "/withdrawals",
+                {
+                    method: "POST",
 
-    } catch {}
-  }
+                    body: JSON.stringify({
+                        amount_bdt: amount,
+                        method: state.withdrawMethod,
+                        account_number: accountNumber
+                    })
+                }
+            );
+
+        if (data?.wallet) {
+
+            state.wallet = {
+                ...state.wallet,
+                ...data.wallet
+            };
+
+        } else {
+
+            await loadWallet();
+        }
+
+        await loadTransactions();
+
+        closeWithdrawModal();
+
+        showToast(
+            "Withdrawal request submitted successfully.",
+            "success"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Withdrawal error:",
+            error
+        );
+
+        showToast(
+            error.message ||
+            "Withdrawal request failed.",
+            "error"
+        );
+
+    } finally {
+
+        if (button) {
+
+            button.disabled = false;
+
+            button.textContent =
+                "Submit Withdrawal";
+        }
+    }
 }
 
 
-/* =========================================================
-   OFFICIAL CHANNEL
-   ========================================================= */
+/* =========================
+   REFERRAL
+========================= */
 
-function openOfficialChannel() {
+function getBotUsername() {
 
-  if (tg?.openTelegramLink) {
+    if (tg?.initDataUnsafe?.user) {
+        // Only username from unsafe data is used
+        // for UI, not authentication.
+    }
 
-    tg.openTelegramLink(
-      OFFICIAL_CHANNEL
-    );
-
-  } else {
-
-    window.open(
-      OFFICIAL_CHANNEL,
-      "_blank"
-    );
-
-  }
+    return "Qexus_Official_Bot";
 }
 
 
-function showAnnouncement() {
+function generateReferralLink() {
 
-  const modal =
-    $("announcementModal");
+    if (!state.user) {
+        return "";
+    }
 
-  if (!modal) return;
+    const telegramId =
+        state.user.telegram_id ??
+        state.user.id;
 
-  modal.classList.add("show");
+    if (!telegramId) {
+        return "";
+    }
+
+    return `https://t.me/${getBotUsername()}?start=ref_${telegramId}`;
 }
 
 
-function closeAnnouncement() {
+function renderReferral() {
 
-  const modal =
-    $("announcementModal");
+    const input =
+        $("referralLink");
 
-  if (!modal) return;
+    if (!input) return;
 
-  modal.classList.remove("show");
+    const link =
+        state.user?.referral_link ||
+        generateReferralLink();
+
+    input.value = link;
 }
 
 
-/* =========================================================
-   FIRST VISIT ANNOUNCEMENT
-   ========================================================= */
+async function copyReferralLink() {
 
-function handleFirstVisitPopup() {
+    const input =
+        $("referralLink");
 
-  const shown =
-    localStorage.getItem(
-      "qexus_announcement_seen"
-    );
+    const link =
+        input?.value ||
+        generateReferralLink();
 
+    if (!link) {
 
-  if (shown) return;
+        showToast(
+            "Referral link পাওয়া যায়নি।",
+            "error"
+        );
 
+        return;
+    }
 
-  setTimeout(
-    () => {
+    try {
 
-      showAnnouncement();
+        await navigator.clipboard.writeText(link);
 
-      localStorage.setItem(
-        "qexus_announcement_seen",
-        "1"
-      );
+        showToast(
+            "Referral link copied!",
+            "success"
+        );
 
-    },
-    1200
-  );
+    } catch {
+
+        if (input) {
+
+            input.select();
+
+            document.execCommand(
+                "copy"
+            );
+
+            showToast(
+                "Referral link copied!",
+                "success"
+            );
+        }
+    }
 }
 
 
-/* =========================================================
+/* =========================
+   NAVIGATION
+========================= */
+
+function navigate(page) {
+
+    if (!page) return;
+
+    state.currentPage = page;
+
+    const pages =
+        document.querySelectorAll(
+            "[data-page-content]"
+        );
+
+    pages.forEach(section => {
+
+        const sectionPage =
+            section.dataset.pageContent;
+
+        section.classList.toggle(
+            "active",
+            sectionPage === page
+        );
+
+        if (sectionPage === page) {
+            section.style.display = "";
+        } else {
+            section.style.display = "none";
+        }
+    });
+
+    /*
+      Support common page class patterns
+    */
+
+    document
+        .querySelectorAll(".page")
+        .forEach(section => {
+
+            const id =
+                section.id?.replace(
+                    /^page-/,
+                    ""
+                );
+
+            if (!id) return;
+
+            section.classList.toggle(
+                "active",
+                id === page
+            );
+        });
+
+
+    /*
+      Navigation buttons
+    */
+
+    document
+        .querySelectorAll(
+            ".nav-item, .bottom-nav-item, [data-nav-page]"
+        )
+        .forEach(button => {
+
+            const target =
+                button.dataset.page ||
+                button.dataset.navPage;
+
+            button.classList.toggle(
+                "active",
+                target === page
+            );
+        });
+
+
+    /*
+      Load page-specific data
+    */
+
+    if (page === "tasks") {
+        loadTasks();
+    }
+
+    if (page === "wallet") {
+        loadWallet();
+        loadTransactions();
+    }
+
+    if (page === "profile") {
+        renderReferral();
+    }
+
+    if (page === "leaderboard" || page === "ranks") {
+        loadLeaderboard();
+    }
+
+    if (typeof tg?.BackButton !== "undefined") {
+
+        if (page === "home") {
+
+            if (
+                typeof tg.BackButton.hide === "function"
+            ) {
+                tg.BackButton.hide();
+            }
+
+        } else {
+
+            if (
+                typeof tg.BackButton.show === "function"
+            ) {
+                tg.BackButton.show();
+            }
+        }
+    }
+}
+
+
+/* =========================
+   MODALS
+========================= */
+
+function closeModalById(id) {
+
+    const modal = $(id);
+
+    if (!modal) return;
+
+    modal.classList.remove("active");
+    modal.classList.remove("show");
+
+    modal.style.display = "none";
+}
+
+
+function openModalById(id) {
+
+    const modal = $(id);
+
+    if (!modal) return;
+
+    modal.classList.add("active");
+    modal.classList.add("show");
+
+    modal.style.display = "flex";
+}
+
+
+/* =========================
    NOTIFICATIONS
-   ========================================================= */
+========================= */
 
-function showNotifications() {
+function openNotifications() {
 
-  const modal =
-    $("notificationModal");
+    const modal =
+        $("notificationModal");
 
-  if (!modal) return;
+    if (!modal) {
+        showToast(
+            "No new notifications.",
+            "info"
+        );
+        return;
+    }
 
-  modal.classList.add("show");
+    openModalById(
+        "notificationModal"
+    );
 }
 
 
 function closeNotifications() {
 
-  const modal =
-    $("notificationModal");
-
-  if (!modal) return;
-
-  modal.classList.remove("show");
+    closeModalById(
+        "notificationModal"
+    );
 }
 
 
-/* =========================================================
+/* =========================
+   ANNOUNCEMENT
+========================= */
+
+function openAnnouncement() {
+
+    const modal =
+        $("announcementModal");
+
+    if (modal) {
+        openModalById(
+            "announcementModal"
+        );
+    }
+}
+
+
+function closeAnnouncement() {
+
+    closeModalById(
+        "announcementModal"
+    );
+}
+
+
+/* =========================
    POLICY
-   ========================================================= */
+========================= */
 
-function showPolicy(type) {
+const POLICY_CONTENT = {
 
-  const modal =
-    $("policyModal");
+    terms: {
+        title: "Terms & Conditions",
+        body: `
+            <p>
+                QEXUS is a rewards platform where users can
+                earn QEXC through available activities.
+            </p>
 
-  const title =
-    $("policyTitle");
+            <p>
+                QEXC is an internal reward point and does not
+                represent an investment, cryptocurrency,
+                security or guaranteed financial return.
+            </p>
 
-  const body =
-    $("policyBody");
+            <p>
+                Fraud, automation, fake accounts, exploitation
+                or abuse of the platform may result in account
+                restrictions.
+            </p>
+        `
+    },
 
+    privacy: {
+        title: "Privacy Policy",
+        body: `
+            <p>
+                QEXUS may process Telegram account information
+                required to provide the service.
+            </p>
 
-  if (!modal || !title || !body) {
-    return;
-  }
+            <p>
+                Wallet, reward and withdrawal information may
+                be stored for account and fraud-prevention
+                purposes.
+            </p>
 
+            <p>
+                Never share your Telegram authentication data,
+                passwords or financial credentials with anyone.
+            </p>
+        `
+    },
 
-  if (type === "privacy") {
+    earning: {
+        title: "Earning Rules",
+        body: `
+            <p>
+                Rewards are provided only after the required
+                activity is successfully verified.
+            </p>
 
-    title.textContent =
-      "Privacy Policy";
+            <p>
+                Watching an advertisement partially or skipping
+                it may result in no reward.
+            </p>
 
-
-    body.innerHTML = `
-      <p>
-        QEXUS আপনার Telegram account information
-        শুধুমাত্র service পরিচালনা ও reward system
-        চালানোর প্রয়োজন অনুযায়ী ব্যবহার করে।
-      </p>
-
-      <p>
-        আমরা আপনার password, OTP বা payment PIN
-        চাই না।
-      </p>
-
-      <p>
-        Withdrawal-এর জন্য দেওয়া payment number
-        শুধুমাত্র withdrawal processing-এর কাজে
-        ব্যবহার করা হবে।
-      </p>
-    `;
-
-  } else {
-
-    title.textContent =
-      "Terms & Conditions";
-
-
-    body.innerHTML = `
-      <p>
-        QEXUS একটি rewards platform।
-      </p>
-
-      <p>
-        QEXC হলো QEXUS-এর internal reward point।
-        এটি cryptocurrency, investment বা
-        financial security নয়।
-      </p>
-
-      <p>
-        Fraud, bot abuse, multiple-account abuse,
-        automated activity বা system manipulation
-        নিষিদ্ধ।
-      </p>
-
-      <p>
-        Fraudulent activity শনাক্ত হলে account
-        restriction বা reward cancellation হতে পারে।
-      </p>
-    `;
-  }
+            <p>
+                Reward rates can change depending on platform
+                and advertising conditions.
+            </p>
+        `
+    }
+};
 
 
-  modal.classList.add("show");
+function openPolicy(type) {
+
+    const content =
+        POLICY_CONTENT[type];
+
+    if (!content) return;
+
+    const title =
+        $("policyTitle");
+
+    const body =
+        $("policyBody");
+
+    if (title) {
+        title.textContent =
+            content.title;
+    }
+
+    if (body) {
+        body.innerHTML =
+            content.body;
+    }
+
+    openModalById(
+        "policyModal"
+    );
 }
 
 
-/* =========================================================
-   HELP
-   ========================================================= */
+function closePolicy() {
 
-function showHelp() {
-
-  const modal =
-    $("infoModal");
-
-  const title =
-    $("infoModalTitle");
-
-  const body =
-    $("infoModalBody");
-
-
-  if (!modal || !title || !body) {
-    return;
-  }
-
-
-  title.textContent =
-    "Help & Support";
-
-
-  body.innerHTML = `
-    <p>
-      QEXUS ব্যবহার করতে কোনো সমস্যা হলে
-      support-এর সঙ্গে যোগাযোগ করুন।
-    </p>
-
-    <p>
-      Reward না পেলে কিছুক্ষণ অপেক্ষা করে
-      Wallet refresh করুন।
-    </p>
-
-    <p>
-      Withdrawal request manual review-এর
-      মাধ্যমে process করা হয়।
-    </p>
-  `;
-
-
-  modal.classList.add("show");
+    closeModalById(
+        "policyModal"
+    );
 }
 
 
-/* =========================================================
-   ABOUT
-   ========================================================= */
+/* =========================
+   HELP / ABOUT
+========================= */
 
-function showAbout() {
+function openHelp() {
 
-  const modal =
-    $("infoModal");
+    const title =
+        $("infoModalTitle");
 
-  const title =
-    $("infoModalTitle");
+    const body =
+        $("infoModalBody");
 
-  const body =
-    $("infoModalBody");
+    if (title) {
+        title.textContent =
+            "Help & Support";
+    }
 
+    if (body) {
 
-  if (!modal || !title || !body) {
-    return;
-  }
+        body.innerHTML = `
+            <p>
+                Need help with QEXUS?
+            </p>
 
+            <p>
+                Make sure your Telegram account is connected
+                and your Mini App is opened from the official
+                QEXUS bot.
+            </p>
 
-  title.textContent =
-    "About QEXUS";
+            <p>
+                For withdrawal issues, keep your request ID
+                and transaction information available.
+            </p>
+        `;
+    }
 
-
-  body.innerHTML = `
-    <p>
-      <strong>QEXUS</strong>
-      একটি Telegram-based rewards platform।
-    </p>
-
-    <p>
-      Watch, complete tasks এবং অন্যান্য
-      available activities-এর মাধ্যমে QEXC earn
-      করা যায়।
-    </p>
-
-    <p>
-      Conversion:
-      <strong>1,000 QEXC = ৳100</strong>
-    </p>
-  `;
-
-
-  modal.classList.add("show");
+    openModalById(
+        "infoModal"
+    );
 }
 
 
-/* =========================================================
-   CLOSE INFO MODALS
-   ========================================================= */
+function openAbout() {
+
+    const title =
+        $("infoModalTitle");
+
+    const body =
+        $("infoModalBody");
+
+    if (title) {
+        title.textContent =
+            "About QEXUS";
+    }
+
+    if (body) {
+
+        body.innerHTML = `
+            <p>
+                QEXUS is a Telegram-based rewards platform
+                focused on simple earning activities.
+            </p>
+
+            <p>
+                Earn QEXC through eligible activities and
+                request withdrawals when your balance reaches
+                the minimum threshold.
+            </p>
+
+            <p>
+                <strong>1,000 QEXC = ৳100</strong>
+            </p>
+        `;
+    }
+
+    openModalById(
+        "infoModal"
+    );
+}
+
 
 function closeInfoModal() {
 
-  const policy =
-    $("policyModal");
-
-  const info =
-    $("infoModal");
-
-
-  if (policy) {
-    policy.classList.remove("show");
-  }
-
-
-  if (info) {
-    info.classList.remove("show");
-  }
-}
-
-
-/* =========================================================
-   MODAL OUTSIDE CLICK
-   ========================================================= */
-
-document.addEventListener(
-  "click",
-  (event) => {
-
-    const target =
-      event.target;
-
-
-    if (
-      target.classList.contains(
-        "modal"
-      )
-    ) {
-
-      target.classList.remove(
-        "show"
-      );
-
-    }
-
-  }
-);
-
-
-/* =========================================================
-   FORMAT DATE
-   ========================================================= */
-
-function formatDate(value) {
-
-  if (!value) {
-    return "";
-  }
-
-
-  const date =
-    new Date(value);
-
-
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
-    return String(value);
-  }
-
-
-  return date.toLocaleString(
-    "bn-BD",
-    {
-      day: "numeric",
-      month: "short",
-      year: "numeric"
-    }
-  );
-}
-
-
-/* =========================================================
-   ESCAPE HTML
-   ========================================================= */
-
-function escapeHTML(value) {
-
-  return String(value ?? "")
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-    .replace(
-      /</g,
-      "&lt;"
-    )
-    .replace(
-      />/g,
-      "&gt;"
-    )
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-    .replace(
-      /'/g,
-      "&#039;"
+    closeModalById(
+        "infoModal"
     );
 }
 
 
-function escapeAttribute(value) {
-
-  return String(value ?? "")
-    .replace(
-      /\\/g,
-      "\\\\"
-    )
-    .replace(
-      /'/g,
-      "\\'"
-    );
-}
-
-
-/* =========================================================
-   REFRESH APP
-   ========================================================= */
-
-async function refreshApp() {
-
-  await Promise.allSettled([
-    loadWallet(),
-    loadTransactions(),
-    loadTasks()
-  ]);
-
-  updateUserUI();
-  updateWalletUI();
-}
-
-
-/* =========================================================
-   VISIBILITY REFRESH
-   ========================================================= */
-
-document.addEventListener(
-  "visibilitychange",
-  () => {
-
-    if (
-      document.visibilityState ===
-      "visible"
-    ) {
-
-      refreshApp();
-
-    }
-
-  }
-);
-
-
-/* =========================================================
+/* =========================
    TELEGRAM BACK BUTTON
-   ========================================================= */
+========================= */
 
-if (tg?.BackButton) {
+function setupTelegramBackButton() {
 
-  try {
+    if (!tg?.BackButton) return;
 
-    tg.BackButton.onClick(
-      () => {
+    try {
 
-        if (
-          state.currentPage !==
-          "home"
-        ) {
+        tg.BackButton.onClick(() => {
 
-          navigate("home");
+            const withdraw =
+                $("withdrawModal");
 
-        } else {
+            if (
+                withdraw &&
+                (
+                    withdraw.classList.contains("active") ||
+                    withdraw.style.display === "flex"
+                )
+            ) {
+                closeWithdrawModal();
+                return;
+            }
 
-          tg.BackButton.hide();
+            const activeModal =
+                document.querySelector(
+                    ".modal.active, .modal.show"
+                );
 
-        }
+            if (activeModal) {
 
-      }
-    );
+                activeModal.classList.remove(
+                    "active"
+                );
 
-  } catch {}
+                activeModal.classList.remove(
+                    "show"
+                );
+
+                activeModal.style.display =
+                    "none";
+
+                return;
+            }
+
+            if (state.currentPage !== "home") {
+                navigate("home");
+                return;
+            }
+
+            if (
+                typeof tg.close === "function"
+            ) {
+                tg.close();
+            }
+        });
+
+    } catch (error) {
+
+        console.warn(
+            "Back button setup error:",
+            error
+        );
+    }
 }
 
 
-/* =========================================================
-   INITIALIZATION
-   ========================================================= */
+/* =========================
+   CLICK HANDLERS
+========================= */
 
-async function initializeApp() {
+function setupGlobalClicks() {
 
-  showLoader(
-    "QEXUS লোড হচ্ছে..."
-  );
+    /*
+      Withdrawal method
+    */
+
+    $$("[data-method]").forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                selectWithdrawMethod(
+                    button.dataset.method
+                );
+
+            }
+        );
+    });
 
 
-  try {
+    /*
+      Bottom navigation
+    */
 
-    const authenticated =
-      await authenticate();
+    $$(".nav-item, .bottom-nav-item").forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    const page =
+                        button.dataset.page ||
+                        button.dataset.navPage;
+
+                    if (page) {
+                        navigate(page);
+                    }
+                }
+            );
+        }
+    );
 
 
-    if (!authenticated) {
+    /*
+      Close modals by clicking overlay
+    */
 
-      hideLoader();
+    document.addEventListener(
+        "click",
+        event => {
 
-      return;
+            const target =
+                event.target;
+
+            if (
+                target.classList &&
+                target.classList.contains("modal")
+            ) {
+                target.classList.remove(
+                    "active"
+                );
+
+                target.classList.remove(
+                    "show"
+                );
+
+                target.style.display =
+                    "none";
+            }
+        }
+    );
+}
+
+
+/* =========================
+   TELEGRAM MAIN BUTTON
+========================= */
+
+function setupTelegramMainButton() {
+
+    if (!tg?.MainButton) return;
+
+    try {
+
+        tg.MainButton.hide();
+
+    } catch {
+        // Ignore
     }
+}
 
 
-    updateUserUI();
+/* =========================
+   INIT UI
+========================= */
 
-    updateWalletUI();
+function initialUI() {
+
+    renderUser();
+    renderWallet();
+    renderTransactions();
+    renderReferral();
+
+    renderDailyStatus();
+
+    selectWithdrawMethod(
+        state.withdrawMethod
+    );
+}
 
 
-    loadSavedDailyTimer();
+/* =========================
+   REFRESH
+========================= */
 
-
-    /*
-     * AdsGram
-     */
-
-    initializeAdsgram();
-
-
-    /*
-     * Load app data
-     */
+async function refreshAll() {
 
     await Promise.allSettled([
-      loadWallet(),
-      loadTransactions(),
-      loadTasks()
+        loadWallet(),
+        loadTransactions(),
+        loadTasks(),
+        loadLeaderboard()
     ]);
 
-
-    updateUserUI();
-    updateWalletUI();
-
-
-    handleFirstVisitPopup();
-
-
-    state.initialized =
-      true;
-
-
-  } catch (error) {
-
-    console.error(
-      "QEXUS initialization error:",
-      error
-    );
-
-
-    showToast(
-      "QEXUS load করতে সমস্যা হয়েছে।"
-    );
-
-  } finally {
-
-    hideLoader();
-
-  }
+    renderUser();
+    renderWallet();
+    renderReferral();
 }
 
 
-/* =========================================================
-   GLOBAL FUNCTIONS
-   ========================================================= */
+/* =========================
+   APP INIT
+========================= */
 
-window.navigate =
-  navigate;
+async function initApp() {
 
-window.watchAd =
-  watchAd;
+    if (state.initialized) {
+        return;
+    }
 
-window.claimDailyBonus =
-  claimDailyBonus;
+    state.initialized = true;
 
-window.openWithdrawModal =
-  openWithdrawModal;
+    showLoader(
+        true,
+        "Starting QEXUS..."
+    );
 
-window.closeWithdrawModal =
-  closeWithdrawModal;
+    try {
 
-window.selectWithdrawMethod =
-  selectWithdrawMethod;
+        /*
+          1. Telegram
+        */
 
-window.submitWithdrawal =
-  submitWithdrawal;
-
-window.copyReferral =
-  copyReferral;
-
-window.shareReferral =
-  shareReferral;
-
-window.completeTask =
-  completeTask;
-
-window.openOfficialChannel =
-  openOfficialChannel;
-
-window.showAnnouncement =
-  showAnnouncement;
-
-window.closeAnnouncement =
-  closeAnnouncement;
-
-window.showNotifications =
-  showNotifications;
-
-window.closeNotifications =
-  closeNotifications;
-
-window.showHelp =
-  showHelp;
-
-window.showAbout =
-  showAbout;
-
-window.closeInfoModal =
-  closeInfoModal;
-
-window.showPolicy =
-  showPolicy;
-
-window.refreshApp =
-  refreshApp;
-
-window.loadLeaderboard =
-  loadLeaderboard;
+        if (tg) {
+            try {
+                tg.ready();
+                tg.expand();
+            } catch {}
+        }
 
 
-/* =========================================================
-   START
-   ========================================================= */
+        /*
+          2. Authenticate
+        */
+
+        await authenticate();
+
+
+        /*
+          3. Initial UI
+        */
+
+        initialUI();
+
+
+        /*
+          4. AdsGram
+        */
+
+        initAdsGram();
+
+
+        /*
+          5. Daily
+        */
+
+        await loadDailyStatus();
+
+        startDailyCountdown();
+
+
+        /*
+          6. Data
+        */
+
+        await refreshAll();
+
+
+        /*
+          7. Telegram Back Button
+        */
+
+        setupTelegramBackButton();
+
+
+        /*
+          8. Main button
+        */
+
+        setupTelegramMainButton();
+
+
+        /*
+          9. Global clicks
+        */
+
+        setupGlobalClicks();
+
+
+        /*
+          10. Start home
+        */
+
+        navigate("home");
+
+
+    } catch (error) {
+
+        console.error(
+            "QEXUS initialization error:",
+            error
+        );
+
+        showToast(
+            "QEXUS load করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।",
+            "error"
+        );
+
+    } finally {
+
+        showLoader(false);
+    }
+}
+
+
+/* =========================
+   VISIBILITY REFRESH
+========================= */
 
 document.addEventListener(
-  "DOMContentLoaded",
-  initializeApp
+    "visibilitychange",
+    async () => {
+
+        if (
+            document.visibilityState === "visible" &&
+            state.initialized
+        ) {
+
+            await loadWallet();
+            await loadTransactions();
+
+            renderDailyStatus();
+        }
+    }
 );
+
+
+/* =========================
+   ONLINE / OFFLINE
+========================= */
+
+window.addEventListener(
+    "online",
+    () => {
+
+        showToast(
+            "Internet connection restored.",
+            "success"
+        );
+    }
+);
+
+
+window.addEventListener(
+    "offline",
+    () => {
+
+        showToast(
+            "Internet connection lost.",
+            "warning"
+        );
+    }
+);
+
+
+/* =========================
+   GLOBAL FUNCTIONS
+   Required by HTML onclick=""
+========================= */
+
+window.navigate =
+    navigate;
+
+window.watchAd =
+    watchAd;
+
+window.claimDailyBonus =
+    claimDailyBonus;
+
+window.completeTask =
+    completeTask;
+
+window.openWithdrawModal =
+    openWithdrawModal;
+
+window.closeWithdrawModal =
+    closeWithdrawModal;
+
+window.submitWithdrawal =
+    submitWithdrawal;
+
+window.selectWithdrawMethod =
+    selectWithdrawMethod;
+
+window.copyReferralLink =
+    copyReferralLink;
+
+window.openNotifications =
+    openNotifications;
+
+window.closeNotifications =
+    closeNotifications;
+
+window.openAnnouncement =
+    openAnnouncement;
+
+window.closeAnnouncement =
+    closeAnnouncement;
+
+window.openPolicy =
+    openPolicy;
+
+window.closePolicy =
+    closePolicy;
+
+window.openHelp =
+    openHelp;
+
+window.openAbout =
+    openAbout;
+
+window.closeInfoModal =
+    closeInfoModal;
+
+window.refreshAll =
+    refreshAll;
+
+
+/* =========================
+   START
+========================= */
+
+if (
+    document.readyState === "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initApp
+    );
+
+} else {
+
+    initApp();
+}
